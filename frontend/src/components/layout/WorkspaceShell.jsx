@@ -2,13 +2,19 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  FolderPlus,
+  Globe,
   Hash,
   Info,
+  Lock,
   Menu,
   Plus,
   Search,
+  Settings,
+  ShieldCheck,
   Trash2,
   Users,
+  X,
 } from "lucide-react";
 
 import CommunitiesBar from "./CommunitiesBar";
@@ -97,6 +103,13 @@ function WorkspaceShell({
   const [categoryToDelete, setCategoryToDelete] = useState(null);
   const [channelToDelete, setChannelToDelete] = useState(null);
   const [createCommunityOpen, setCreateCommunityOpen] = useState(false);
+  const [creatingCommunity, setCreatingCommunity] = useState(false);
+  const [newCommunity, setNewCommunity] = useState({
+    name: "",
+    description: "",
+    isPublic: true,
+  });
+  const [communityError, setCommunityError] = useState("");
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [switcherQuery, setSwitcherQuery] = useState("");
   const [infoOpen, setInfoOpen] = useState(false);
@@ -109,6 +122,7 @@ function WorkspaceShell({
   const role = community?.role || null;
   const canManageCategories = hasPermission(role, PERMISSIONS.MANAGE_CATEGORIES);
   const canManageChannels = hasPermission(role, PERMISSIONS.MANAGE_CHANNELS);
+  const canManageRoles = hasPermission(role, PERMISSIONS.MANAGE_ROLES);
   const canInvite = hasPermission(role, PERMISSIONS.INVITE_MEMBERS);
   const canUpdateCommunity = hasPermission(role, PERMISSIONS.UPDATE_COMMUNITY);
   const canDeleteCommunity = hasPermission(role, PERMISSIONS.MANAGE_COMMUNITY);
@@ -684,24 +698,78 @@ function WorkspaceShell({
 
   // --- Communauté ---------------------------------------------------------
 
+  /** Réinitialise et ouvre la modale de création de communauté. */
+  const openCreateCommunity = useCallback(() => {
+    setNewCommunity({ name: "", description: "", isPublic: true });
+    setCommunityError("");
+    setCreatingCommunity(false);
+    setCreateCommunityOpen(true);
+  }, []);
+
+  /** Ferme la modale (sauf pendant l'envoi, pour éviter de perdre la saisie). */
+  const closeCreateCommunity = useCallback(() => {
+    if (creatingCommunity) return;
+    setCreateCommunityOpen(false);
+    setCommunityError("");
+  }, [creatingCommunity]);
+
+  /** Échap ferme la modale. */
+  useEffect(() => {
+    if (!createCommunityOpen) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") closeCreateCommunity();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [createCommunityOpen, closeCreateCommunity]);
+
+  /** Nom valide : au moins 2 caractères. */
+  const communityNameError = useMemo(() => {
+    const name = newCommunity.name.trim();
+    if (name && name.length < 2) {
+      return "Le nom doit contenir au moins 2 caractères.";
+    }
+    return "";
+  }, [newCommunity.name]);
+
+  /** Initiales de l'aperçu (2 lettres max). */
+  const communityInitials = useMemo(() => {
+    const words = newCommunity.name.trim().split(/\s+/).filter(Boolean);
+    if (!words.length) return "?";
+
+    return (words.length > 1 ? words[0][0] + words[1][0] : words[0].slice(0, 2))
+      .toUpperCase();
+  }, [newCommunity.name]);
+
   async function submitCreateCommunity(event) {
     event.preventDefault();
 
-    const form = event.currentTarget.elements;
+    const name = newCommunity.name.trim();
+
+    if (name.length < 2) {
+      setCommunityError("Le nom doit contenir au moins 2 caractères.");
+      return;
+    }
+
+    setCommunityError("");
+    setCreatingCommunity(true);
 
     const result = await apiFetch("/api/communities", {
       method: "POST",
       token,
       body: {
-        name: form.namedItem("new-community-name").value.trim(),
-        description:
-          form.namedItem("new-community-description").value.trim() || undefined,
-        isPublic: form.namedItem("new-community-public").checked,
+        name,
+        description: newCommunity.description.trim() || undefined,
+        isPublic: newCommunity.isPublic,
       },
     });
 
+    setCreatingCommunity(false);
+
     if (!result.ok) {
-      fail(result);
+      setCommunityError(result?.data?.message || "L'opération a échoué.");
       return;
     }
 
@@ -803,7 +871,7 @@ function WorkspaceShell({
       openDeleteChannel: setChannelToDelete,
       reorderCategories,
       reorderChannels,
-      openCreateCommunity: () => setCreateCommunityOpen(true),
+      openCreateCommunity,
       openSwitcher,
       // Permet aux pages de savoir si le tiroir latéral est ouvert (mobile).
       drawerOpen,
@@ -929,7 +997,7 @@ function WorkspaceShell({
         <CommunitiesBar
           communities={communities}
           token={token}
-          onCreateCommunity={() => setCreateCommunityOpen(true)}
+          onCreateCommunity={openCreateCommunity}
         />
 
         <AnimatePresence>
@@ -1672,40 +1740,71 @@ function WorkspaceShell({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setCreateCommunityOpen(false)}
+              onClick={closeCreateCommunity}
             >
               <motion.div
-                className="ws-modal"
+                className="ws-modal ws-modal-community"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="create-community-title"
                 initial={{ opacity: 0, scale: 0.92, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 14 }}
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="ws-modal-header">
-                  <div>
-                    <h2 className="ws-modal-title">Créer une communauté</h2>
-                    <p className="ws-modal-subtitle">
-                      Une catégorie « GÉNÉRAL » et un salon général sont créés
-                      automatiquement. Vous en devenez propriétaire.
-                    </p>
+                  <div className="ws-modal-heading">
+                    <span className="ws-modal-heading-icon">
+                      <Users size={19} />
+                    </span>
+                    <div>
+                      <h2
+                        id="create-community-title"
+                        className="ws-modal-title"
+                      >
+                        Créer une communauté
+                      </h2>
+                      <p className="ws-modal-subtitle">
+                        Vous en devenez propriétaire. Une catégorie « GÉNÉRAL »
+                        et un premier salon sont créés automatiquement.
+                      </p>
+                    </div>
                   </div>
 
                   <button
                     className="ws-button ws-icon-button"
                     type="button"
-                    onClick={() => setCreateCommunityOpen(false)}
+                    onClick={closeCreateCommunity}
+                    disabled={creatingCommunity}
+                    aria-label="Fermer"
                   >
-                    ×
+                    <X size={18} />
                   </button>
                 </div>
 
                 <form onSubmit={submitCreateCommunity}>
+                  {/* Aperçu en direct */}
+                  <div className="ws-community-preview" aria-hidden="true">
+                    <div className="ws-community-avatar">
+                      {communityInitials}
+                    </div>
+                    <div className="ws-community-preview-body">
+                      <span className="ws-community-preview-name">
+                        {newCommunity.name.trim() || "Nouvelle communauté"}
+                      </span>
+                      <span className="ws-community-preview-desc">
+                        {newCommunity.description.trim() ||
+                          "Aucune description pour le moment"}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="ws-form-group">
                     <label
                       className="ws-form-label"
                       htmlFor="new-community-name"
                     >
-                      Nom
+                      Nom de la communauté
                     </label>
                     <input
                       id="new-community-name"
@@ -1713,10 +1812,34 @@ function WorkspaceShell({
                       className="ws-form-input"
                       type="text"
                       placeholder="Ex. Équipe produit"
+                      autoFocus
                       minLength={2}
                       maxLength={80}
+                      value={newCommunity.name}
+                      onChange={(event) =>
+                        setNewCommunity((previous) => ({
+                          ...previous,
+                          name: event.target.value,
+                        }))
+                      }
+                      aria-invalid={Boolean(communityNameError)}
+                      aria-describedby="new-community-name-help"
                       required
                     />
+                    <div className="ws-form-foot" id="new-community-name-help">
+                      {communityNameError ? (
+                        <span className="ws-form-error">
+                          {communityNameError}
+                        </span>
+                      ) : (
+                        <span className="ws-form-help">
+                          Affiché dans la barre latérale et en haut de l'espace.
+                        </span>
+                      )}
+                      <span className="ws-form-count">
+                        {newCommunity.name.length}/80
+                      </span>
+                    </div>
                   </div>
 
                   <div className="ws-form-group">
@@ -1724,7 +1847,8 @@ function WorkspaceShell({
                       className="ws-form-label"
                       htmlFor="new-community-description"
                     >
-                      Description (facultative)
+                      Description{" "}
+                      <span className="ws-form-label-optional">facultative</span>
                     </label>
                     <textarea
                       id="new-community-description"
@@ -1732,29 +1856,99 @@ function WorkspaceShell({
                       className="ws-form-textarea"
                       placeholder="À quoi sert cet espace ?"
                       maxLength={300}
+                      value={newCommunity.description}
+                      onChange={(event) =>
+                        setNewCommunity((previous) => ({
+                          ...previous,
+                          description: event.target.value,
+                        }))
+                      }
                     />
+                    <div className="ws-form-foot">
+                      <span className="ws-form-help">
+                        Visible sur la page de découverte.
+                      </span>
+                      <span className="ws-form-count">
+                        {newCommunity.description.length}/300
+                      </span>
+                    </div>
                   </div>
 
-                  <label className="ws-checkbox-row">
-                    <input
-                      type="checkbox"
-                      name="new-community-public"
-                      defaultChecked
-                    />
-                    Communauté publique (visible dans la découverte ; les
-                    non-membres peuvent lire mais pas écrire)
-                  </label>
+                  <fieldset className="ws-visibility">
+                    <legend className="ws-form-label">Visibilité</legend>
+                    <div className="ws-visibility-options">
+                      <label className="ws-visibility-option">
+                        <input
+                          type="radio"
+                          name="new-community-visibility"
+                          value="public"
+                          checked={newCommunity.isPublic}
+                          onChange={() =>
+                            setNewCommunity((previous) => ({
+                              ...previous,
+                              isPublic: true,
+                            }))
+                          }
+                        />
+                        <span className="ws-visibility-icon">
+                          <Globe size={17} />
+                        </span>
+                        <span className="ws-visibility-text">
+                          <span className="ws-visibility-name">Publique</span>
+                          <span className="ws-visibility-desc">
+                            Visible dans la découverte, lecture ouverte aux
+                            non-membres
+                          </span>
+                        </span>
+                      </label>
+
+                      <label className="ws-visibility-option">
+                        <input
+                          type="radio"
+                          name="new-community-visibility"
+                          value="private"
+                          checked={!newCommunity.isPublic}
+                          onChange={() =>
+                            setNewCommunity((previous) => ({
+                              ...previous,
+                              isPublic: false,
+                            }))
+                          }
+                        />
+                        <span className="ws-visibility-icon">
+                          <Lock size={17} />
+                        </span>
+                        <span className="ws-visibility-text">
+                          <span className="ws-visibility-name">Privée</span>
+                          <span className="ws-visibility-desc">
+                            Accessible uniquement sur invitation
+                          </span>
+                        </span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  {communityError && (
+                    <p className="ws-form-banner" role="alert">
+                      {communityError}
+                    </p>
+                  )}
 
                   <div className="ws-form-actions">
                     <button
                       className="ws-button"
                       type="button"
-                      onClick={() => setCreateCommunityOpen(false)}
+                      onClick={closeCreateCommunity}
+                      disabled={creatingCommunity}
                     >
                       Annuler
                     </button>
-                    <button className="ws-button ws-button-primary" type="submit">
-                      Créer
+                    <button
+                      className="ws-button ws-button-primary"
+                      type="submit"
+                      disabled={creatingCommunity || Boolean(communityNameError)}
+                    >
+                      {creatingCommunity ? "Création en cours..." : "Créer"}
                     </button>
                   </div>
                 </form>
@@ -1794,6 +1988,7 @@ function WorkspaceShell({
               items={[
                 {
                   label: "Vue d'ensemble",
+                  icon: <Info size={16} />,
                   onClick: () => navigate(`/c/${communityId}`),
                 },
                 {
@@ -1804,14 +1999,37 @@ function WorkspaceShell({
                 },
                 {
                   label: "Réglages de la communauté",
+                  icon: <Settings size={16} />,
                   disabled: !canUpdateCommunity,
                   onClick: () => navigate(`/c/${communityId}?tab=reglages`),
                 },
-                { separator: true, label: "sep-1" },
+                {
+                  label: "Gérer les rôles",
+                  icon: <ShieldCheck size={16} />,
+                  disabled: !canManageRoles,
+                  onClick: () => navigate(`/c/${communityId}?tab=roles`),
+                },
+                { separator: true, label: "sep-structure" },
+
+                // Création directe depuis le menu du serveur : on n'a pas à
+                // rejoindre l'onglet « Salons » pour poser un salon.
+                {
+                  label: "Créer une catégorie",
+                  icon: <FolderPlus size={16} />,
+                  disabled: !canManageCategories,
+                  onClick: () => openCreateCategory(),
+                },
+                {
+                  label: "Créer un salon",
+                  icon: <Hash size={16} />,
+                  disabled: !canManageChannels,
+                  onClick: () => openCreateChannel(null),
+                },
+                { separator: true, label: "sep-quitter" },
                 {
                   label: "Quitter la communauté",
                   danger: true,
-                  disabled: !role,
+                  disabled: !role || role.isOwner,
                   onClick: leaveCommunity,
                 },
               ]}
