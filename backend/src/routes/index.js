@@ -7,6 +7,7 @@ const channelRouter = require("./channel");
 const invitations = require("./invitations");
 const notificationsRouter = require("./notifications");
 const dmsRouter = require("./dms");
+const usersRouter = require("./users");
 
 const router = express.Router();
 
@@ -21,5 +22,6 @@ router.use("/channels", channelRouter);
 router.use("/invitations", invitations.publicRouter);
 router.use("/notifications", notificationsRouter);
 router.use("/dms", dmsRouter);
+router.use("/users", usersRouter);
 
 module.exports = router;

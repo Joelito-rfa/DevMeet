@@ -8,17 +8,17 @@ import {
 } from "framer-motion";
 
 const BLOBS = [
-  { size: 520, color: "rgba(88,101,242,0.16)", top: "-140px", left: "-120px", dx: 60, dy: 40, dur: 11 },
-  { size: 460, color: "rgba(88,101,242,0.13)", bottom: "-160px", right: "-100px", dx: -70, dy: -50, dur: 13 },
-  { size: 380, color: "rgba(88,101,242,0.09)", top: "30%", left: "55%", dx: 50, dy: -60, dur: 15 },
-  { size: 300, color: "rgba(88,101,242,0.12)", top: "60%", left: "8%", dx: -40, dy: 50, dur: 10 },
+  { size: 620, color: "rgba(var(--theme-glow-rgb),0.18)", top: "-160px", left: "-140px", dx: 70, dy: 50, dur: 12 },
+  { size: 560, color: "rgba(var(--theme-glow-rgb),0.15)", bottom: "-180px", right: "-120px", dx: -80, dy: -60, dur: 14 },
+  { size: 480, color: "rgba(var(--theme-glow-rgb),0.11)", top: "28%", left: "58%", dx: 60, dy: -70, dur: 16 },
+  { size: 400, color: "rgba(var(--theme-glow-rgb),0.14)", top: "62%", left: "6%", dx: -50, dy: 60, dur: 11 },
 ];
 
 // Faisceaux de scène : de longues nappes verticales qui pivotent lentement.
 const BEAMS = [
-  { left: "6%", width: 240, color: "rgba(88,101,242, 0.2)", tilt: 15, dur: 19, delay: 0 },
-  { left: "42%", width: 190, color: "rgba(88,101,242, 0.13)", tilt: -11, dur: 24, delay: -6 },
-  { left: "74%", width: 260, color: "rgba(88,101,242, 0.17)", tilt: 19, dur: 21, delay: -11 },
+  { left: "6%", width: 260, color: "rgba(var(--theme-glow-rgb), 0.22)", tilt: 15, dur: 19, delay: 0 },
+  { left: "42%", width: 210, color: "rgba(var(--theme-glow-rgb), 0.15)", tilt: -11, dur: 24, delay: -6 },
+  { left: "74%", width: 280, color: "rgba(var(--theme-glow-rgb), 0.19)", tilt: 19, dur: 21, delay: -11 },
 ];
 
 // Constellation : positions dispersées pour éviter tout motif régulier.
@@ -45,6 +45,16 @@ const STARS = [
   { left: "55%", top: "38%", size: 1.5, dur: 7.5, delay: 0.9 },
 ];
 
+// Particules flottantes 3D : petits points qui montent doucement.
+const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
+  i,
+  left: `${10 + i * 4}%`,
+  top: `${80 + (i % 3) * 5}%`,
+  size: 0.5 + (i % 3) * 0.4,
+  dur: 10 + i * 0.7,
+  delay: i * 0.4,
+}));
+
 export default function AnimatedBackground({ variant = "default" }) {
   const auth = variant === "auth";
   const opacity = auth ? 1 : 0.55;
@@ -56,7 +66,7 @@ export default function AnimatedBackground({ variant = "default" }) {
   const glowY = useMotionValue(-600);
   const smoothX = useSpring(glowX, { stiffness: 55, damping: 22, mass: 0.7 });
   const smoothY = useSpring(glowY, { stiffness: 55, damping: 22, mass: 0.7 });
-  const cursorGlow = useMotionTemplate`radial-gradient(560px circle at ${smoothX}px ${smoothY}px, rgba(88,101,242, 0.16), rgba(88,101,242, 0.05) 44%, transparent 70%)`;
+  const cursorGlow = useMotionTemplate`radial-gradient(640px circle at ${smoothX}px ${smoothY}px, rgba(var(--theme-glow-rgb), 0.18), rgba(var(--theme-glow-rgb), 0.05) 44%, transparent 70%)`;
 
   useEffect(() => {
     if (!auth || reduceMotion) {
@@ -77,6 +87,22 @@ export default function AnimatedBackground({ variant = "default" }) {
     <div className="dm-bg" aria-hidden="true" style={{ opacity }}>
       <div className="dm-bg-base" />
       <div className="dm-bg-grid" />
+
+      {/* Sphere 3D tournante au centre : cœur lumineux du décor. */}
+      {!reduceMotion && (
+        <motion.div
+          className="dm-bg-sphere"
+          animate={{
+            rotate: [0, 360],
+            scale: [1, 1.05, 1],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+      )}
 
       {auth && (
         <div className="dm-bg-aurora">
@@ -99,7 +125,7 @@ export default function AnimatedBackground({ variant = "default" }) {
             left: b.left,
             right: b.right,
           }}
-          animate={{ x: [0, b.dx, 0], y: [0, b.dy, 0], scale: [1, 1.08, 1] }}
+          animate={{ x: [0, b.dx, 0], y: [0, b.dy, 0], scale: [1, 1.1, 1] }}
           transition={{ duration: b.dur, repeat: Infinity, ease: "easeInOut" }}
         />
       ))}
@@ -142,6 +168,26 @@ export default function AnimatedBackground({ variant = "default" }) {
           </div>
 
           <motion.div className="dm-bg-cursor" style={{ background: cursorGlow }} />
+        </>
+      )}
+
+      {/* Particules flottantes 3D qui montent lentement. */}
+      {!reduceMotion && (
+        <>
+          {PARTICLES.map((p) => (
+            <span
+              key={p.i}
+              className="dm-bg-particle"
+              style={{
+                left: p.left,
+                top: p.top,
+                width: p.size,
+                height: p.size,
+                animationDuration: `${p.dur}s`,
+                animationDelay: `${p.delay}s`,
+              }}
+            />
+          ))}
         </>
       )}
 

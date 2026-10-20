@@ -10,14 +10,16 @@ import {
   Loader2,
 } from "lucide-react";
 import { AnimatedPage } from "../components/common/motion";
-import AuthShowcase, { THEMES } from "../components/auth/AuthShowcase";
+import AuthShowcase from "../components/auth/AuthShowcase";
 import { GitHubIcon, GoogleIcon } from "../components/auth/BrandIcons";
 import "./Login.css";
 import "./LoginTheme.css";
 import { apiFetch } from "../services/api";
 import { consumeOAuthNotice, startOAuth } from "../services/oauth";
+import { useTheme } from "../theme/useTheme";
 
 function Register({ onRegisterSuccess, onGoToLogin }) {
+  const { theme } = useTheme();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -25,7 +27,6 @@ function Register({ onRegisterSuccess, onGoToLogin }) {
   const [isError, setIsError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [theme, setTheme] = useState("neon");
 
   // Retour d'une connexion Google/GitHub refusée ou non configurée : le
   // message s'affiche dans le formulaire plutôt que sur une page intermédiaire.
@@ -86,7 +87,7 @@ function Register({ onRegisterSuccess, onGoToLogin }) {
               </>
             }
             lead="Rejoignez DevMeet et travaillez avec votre équipe dans un espace pensé pour la collaboration en temps réel."
-            theme={theme}
+            theme={theme === "badass" ? "badass" : "neon"}
           />
 
           {/* ------------------------------- Formulaire -------------------------------- */}
@@ -236,25 +237,6 @@ function Register({ onRegisterSuccess, onGoToLogin }) {
                   Se connecter
                 </button>
               </p>
-            </div>
-
-            <div className="dm-login-theme-picker">
-              <span className="dm-login-theme-picker-label">Fond</span>
-              <div className="dm-login-theme-picker-row">
-                {THEMES.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`dm-login-theme-chip dm-login-theme-chip--${t.id}`}
-                    onClick={() => setTheme(t.id)}
-                    title={t.label}
-                    aria-label={`Thème ${t.label}`}
-                    aria-pressed={theme === t.id}
-                  >
-                    <span className="dm-login-theme-swatch" aria-hidden="true" />
-                  </button>
-                ))}
-              </div>
             </div>
           </section>
         </div>

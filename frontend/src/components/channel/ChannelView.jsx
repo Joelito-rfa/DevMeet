@@ -240,9 +240,9 @@ function ChannelView({ token, user }) {
           transition={{ duration: 0.25 }}
         >
           {channel.type === "board" ? (
-            <Whiteboard roomId={channel.id} />
+            <Whiteboard roomId={channel.id} token={token} />
           ) : channel.type === "voice" ? (
-            <VoiceStage channel={channel} />
+            <VoiceStage channel={channel} user={user} />
           ) : (
             <Chat
               roomId={channel.id}

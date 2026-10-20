@@ -11,10 +11,7 @@ import {
 } from "framer-motion";
 import heroIllustration from "../../assets/hero.png";
 import { useLoginTheme } from "./useLoginTheme";
-import { THEMES, PARALLAX, THEME_LABEL_BY_ID, THEME_TAGS } from "./AuthShowcaseThemes";
 
-export { THEMES, PARALLAX, THEME_LABEL_BY_ID, THEME_TAGS };
-export { useLoginTheme } from "./useLoginTheme";
 export default AuthShowcase;
 
 const INTRO_STAGGER = {
@@ -354,7 +351,8 @@ function AuthShowcase({
     setPointerActive(false);
   }
 
-  return (      <section
+  return (
+    <section
         className={`dm-login-intro dm-login-intro--${t.id} dm-login-intro--${t.bgMode}${pointerActive ? " is-interactive" : ""}`}
         style={{
           "--theme-accent": t.accent,
@@ -442,12 +440,9 @@ function AuthShowcase({
                 animationDelay: `${dot.delay}s`,
               }}
             />
-          )}
-
-        </motion.div>)
-      </motion.div>
-    </>
-  )}
+          ))}
+        </motion.div>
+      )}
 
       <motion.div
         className="dm-login-intro-content"
@@ -494,7 +489,7 @@ function AuthShowcase({
                 <div className="dm-login-feature-text">{item.text}</div>
               </div>
             </motion.div>
-          )}
+          ))}
 
         </motion.div>
       </motion.div>
@@ -521,16 +516,14 @@ function AuthShowcase({
             <span className="dm-login-ring" />
             <span className="dm-login-ring dm-login-ring--b" />
           </div>
-          )
-}
-
+        )}
 
         {spectacular && (
           <>
             <span className="dm-login-ripple" aria-hidden="true" />
-            <span className="dm-login-ripple dm-login-ripple--b" aria-hidden="true" />          </>)
-        </>
-      )}
+            <span className="dm-login-ripple dm-login-ripple--b" aria-hidden="true" />
+          </>
+        )}
 
         <div className="dm-login-halo" aria-hidden="true" />
 
@@ -541,7 +534,9 @@ function AuthShowcase({
             <span className="dm-login-orbit-dot--accent" />
             <span className="dm-login-orbit-dot dm-login-orbit-dot--b" />
           </div>
-        )}        {bgMode === "ring" && (
+        )}
+
+        {bgMode === "ring" && (
           <>
             <span className="dm-login-ring dm-login-ring--c" aria-hidden="true" />
             <span className="dm-login-ring dm-login-ring--d" aria-hidden="true" />

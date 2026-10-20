@@ -9,6 +9,14 @@ const { requireEmail, requirePassword, requireString, optionalString } = require
 const passwordResets = require("../services/passwordResets");
 const { badRequest } = require("../utils/errors");
 const { effectivePermissions } = require("../permissions");
+const { decorationFields } = require("../utils/serialize");
+const {
+  ALLOWED_THEMES,
+  PROFILE_BACKGROUNDS,
+  PROFILE_BANNERS,
+  AVATAR_FRAMES,
+  PROFILE_EFFECTS,
+} = require("../utils/profileCustomization");
 
 const router = express.Router();
 
@@ -18,7 +26,66 @@ const router = express.Router();
  * n'importe quelle chaîne.
  */
 const ALLOWED_STATUSES = ["online", "away", "busy", "invisible", "offline"];
-const ALLOWED_THEMES = ["dark", "light", "system"];
+
+/**
+ * Décorations facultatives : `null` (ou une chaîne vide) efface la décoration.
+ * Toute autre valeur doit appartenir au catalogue partagé.
+ */
+function optionalDecoration(value, field, allowed) {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const id = requireString(value, field, { min: 1, max: 40 });
+
+  if (!allowed.includes(id)) {
+    throw badRequest(
+      `Décoration inconnue pour ${field}.`,
+      "invalid_profile_decoration"
+    );
+  }
+
+  return id;
+}
+
+/** Une liste d'effets légers, sans doublon, dans l'ordre fourni par le client. */
+function optionalEffects(value) {
+  if (value === undefined || value === null) {
+    return null;
+  }
+
+  if (!Array.isArray(value)) {
+    throw badRequest("Les effets de profil doivent être une liste.", "invalid_profile_effects");
+  }
+
+  if (value.length > PROFILE_EFFECTS.length) {
+    throw badRequest("Trop d'effets de profil.", "invalid_profile_effects");
+  }
+
+  const effects = [];
+
+  for (const item of value) {
+    if (typeof item !== "string") {
+      throw badRequest("Effet de profil invalide.", "invalid_profile_effects");
+    }
+
+    const id = item.trim();
+
+    if (!PROFILE_EFFECTS.includes(id)) {
+      throw badRequest(
+        `Effet de profil inconnu : ${id || "(vide)"}.`,
+        "invalid_profile_effects"
+      );
+    }
+
+    if (!effects.includes(id)) {
+      effects.push(id);
+    }
+  }
+
+  return effects.length > 0 ? effects : null;
+}
+
 
 /**
  * Limitation de débit sur les points d'entrée sensibles : freine le bourrage
@@ -46,6 +113,7 @@ function sessionPayload(user, extra = {}) {
       bio: user.bio || null,
       status: user.status || "online",
       theme: user.theme || "dark",
+      ...decorationFields(user),
     },
     ...extra,
   };
@@ -269,6 +337,34 @@ router.patch("/me", requireAuth, async (req, res, next) => {
       }
 
       patch.status = status;
+    }
+
+    if (req.body?.profileBackground !== undefined) {
+      patch.profileBackground = optionalDecoration(
+        req.body.profileBackground,
+        "profileBackground",
+        PROFILE_BACKGROUNDS
+      );
+    }
+
+    if (req.body?.profileBanner !== undefined) {
+      patch.profileBanner = optionalDecoration(
+        req.body.profileBanner,
+        "profileBanner",
+        PROFILE_BANNERS
+      );
+    }
+
+    if (req.body?.avatarFrame !== undefined) {
+      patch.avatarFrame = optionalDecoration(
+        req.body.avatarFrame,
+        "avatarFrame",
+        AVATAR_FRAMES
+      );
+    }
+
+    if (req.body?.profileEffects !== undefined) {
+      patch.profileEffects = optionalEffects(req.body.profileEffects);
     }
 
     const updated = await usersService.updateProfile(req.user.id, patch);

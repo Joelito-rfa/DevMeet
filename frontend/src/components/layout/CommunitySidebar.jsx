@@ -32,6 +32,7 @@ import {
   Search,
   Settings as SettingsIcon,
   UserPlus,
+  UserRound,
   X,
 } from "lucide-react";
 
@@ -79,6 +80,41 @@ function persistAudioPrefs(prefs) {
     // Rien de bloquant : les préférences valent pour la session.
   }
 }
+
+/**
+ * Libellés et tons de présence partagés par le panneau et la carte profil.
+ *
+ * `tone` colore la pastille, `accent` le bandeau de la carte : ce sont deux
+ * éléments différents, donc deux classes — réutiliser `.ws-presence-*` pour le
+ * bandeau ferait hériter de la pulsation de la pastille.
+ */
+const STATUS_META = {
+  online: {
+    label: "En ligne",
+    tone: "ws-presence-online",
+    accent: "ws-profile-accent-online",
+  },
+  away: {
+    label: "Absent",
+    tone: "ws-presence-away",
+    accent: "ws-profile-accent-away",
+  },
+  busy: {
+    label: "Ne pas déranger",
+    tone: "ws-presence-busy",
+    accent: "ws-profile-accent-busy",
+  },
+  invisible: {
+    label: "Hors ligne",
+    tone: "ws-presence-offline",
+    accent: "ws-profile-accent-offline",
+  },
+  offline: {
+    label: "Hors ligne",
+    tone: "ws-presence-offline",
+    accent: "ws-profile-accent-offline",
+  },
+};
 
 /** Poignée de déplacement : révélée au survol, utilisable au clavier. */
 function DragHandle({ attributes, listeners, label }) {
@@ -318,8 +354,39 @@ function CategoryGroup({
  * réglages et déconnexion. Pour un visiteur sans compte (page d'invitation),
  * seul un accès à la connexion est proposé.
  */
-function UserPanel({ user, onOpenSettings, onLogout, onLogin }) {
+function UserPanel({ user, onOpenSettings, onOpenProfile, onLogout, onLogin }) {
   const [audio, setAudio] = useState(readAudioPrefs);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const panelRef = useRef(null);
+  const triggerRef = useRef(null);
+
+  // Ferme la carte de profil au clic extérieur ou avec Échap.
+  useEffect(() => {
+    if (!profileOpen) {
+      return;
+    }
+
+    function handlePointerDown(event) {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+        triggerRef.current?.focus();
+      }
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [profileOpen]);
 
   /** Micro / casque : le vrai flux appartient au salon vocal (VoiceChannel). */
   function sendAudioCommand(command) {
@@ -348,6 +415,19 @@ function UserPanel({ user, onOpenSettings, onLogout, onLogin }) {
   }
 
   const displayName = user?.name || "Invité";
+  const statusMeta = user
+    ? STATUS_META[user.status] || STATUS_META.online
+    : {
+        label: "Aperçu public",
+        tone: "ws-presence-offline",
+        accent: "ws-profile-accent-offline",
+      };
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("fr-FR", {
+        month: "long",
+        year: "numeric",
+      })
+    : null;
   const initials =
     displayName
       .split(" ")
@@ -356,26 +436,169 @@ function UserPanel({ user, onOpenSettings, onLogout, onLogin }) {
       .map((part) => part[0].toUpperCase())
       .join("") || "DM";
 
-  return (
-    <div className="ws-user-panel">
-      <div className="ws-user-panel-main">
-        <span className="ws-user-panel-avatar ws-avatar-wrap">
-          {initials}
+  // Photo de profil si le compte en a une, sinon les initiales.
+  const avatar = user?.avatarUrl ? (
+    <img
+      className="ws-avatar-img"
+      src={user.avatarUrl}
+      alt=""
+      referrerPolicy="no-referrer"
+    />
+  ) : (
+    initials
+  );
 
-          {/* Présence posée dans l'angle bas-droit de l'avatar. */}
-          {user ? (
-            <span className="ws-presence-dot ws-presence-online" />
+  // Le cercle et le libellé sont deux cibles distinctes : un bouton dans un
+  // bouton serait du HTML invalide, et l'anneau du cercle doit pouvoir
+  // s'illuminer seul au survol.
+  const TriggerTag = user ? "button" : "div";
+
+  function toggleProfile() {
+    setProfileOpen((open) => !open);
+  }
+
+  return (
+    <div className="ws-user-panel" ref={panelRef}>
+      <div className="ws-user-panel-main">
+        {/* Le CERCLE est le point d'entrée du profil : la carte s'ouvre juste
+            au-dessus, calée sur lui — le popout de Discord. */}
+        <div className="ws-user-panel-avatar-wrap">
+          <TriggerTag
+            ref={triggerRef}
+            className="ws-user-panel-avatar-btn"
+            {...(user
+              ? {
+                  type: "button",
+                  onClick: toggleProfile,
+                  "aria-expanded": profileOpen,
+                  "aria-controls": "ws-profile-card",
+                  "aria-label": `Profil de ${displayName}`,
+                }
+              : {})}
+          >
+            <span className="ws-user-panel-avatar ws-avatar-wrap">
+              {avatar}
+
+              {/* Présence posée dans l'angle bas-droit de l'avatar. */}
+              {user ? (
+                <span className={`ws-presence-dot ${statusMeta.tone}`} />
+              ) : null}
+            </span>
+          </TriggerTag>
+
+          {user && profileOpen ? (
+            <section
+              className="ws-profile-card"
+              id="ws-profile-card"
+              aria-label="Profil de compte"
+            >
+              {/* Bandeau d'accent : la couleur du statut, comme chez Discord. */}
+              <span
+                className={`ws-profile-accent ${statusMeta.accent}`}
+                aria-hidden="true"
+              />
+
+              {/* Début de la carte : identité et présence, sur fond distinct. */}
+              <header className="ws-profile-head">
+                <span className="ws-profile-avatar ws-avatar-wrap">
+                  {avatar}
+
+                  <span className={`ws-presence-dot ${statusMeta.tone}`} />
+                </span>
+
+                <div className="ws-profile-id">
+                  <p className="ws-profile-name">{displayName}</p>
+
+                  <p className="ws-profile-status">
+                    <span
+                      className={`ws-profile-status-dot ${statusMeta.tone}`}
+                      aria-hidden="true"
+                    />
+                    {statusMeta.label}
+                  </p>
+                </div>
+              </header>
+
+              <div className="ws-profile-body">
+                <p className={`ws-profile-bio${user.bio ? "" : " is-empty"}`}>
+                  {user.bio || "Aucune bio pour le moment."}
+                </p>
+
+                <dl className="ws-profile-meta">
+                  {memberSince ? (
+                    <div>
+                      <dt>Membre depuis</dt>
+                      <dd>{memberSince}</dd>
+                    </div>
+                  ) : null}
+
+                  <div>
+                    <dt>Statut</dt>
+                    <dd>{statusMeta.label}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              {/* Dernière ligne : les actions, elles aussi encadrées. */}
+              <footer className="ws-profile-foot">
+                {onOpenProfile ? (
+                  <button
+                    className="ws-button ws-profile-action"
+                    type="button"
+                    onClick={() => {
+                      setProfileOpen(false);
+                      onOpenProfile();
+                    }}
+                  >
+                    <UserRound size={17} />
+                    Voir mon profil
+                  </button>
+                ) : null}
+
+                <button
+                  className="ws-button ws-button-primary ws-profile-action"
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    onOpenSettings();
+                  }}
+                >
+                  <SettingsIcon size={17} />
+                  Paramètres
+                </button>
+
+                <button
+                  className="ws-button ws-button-danger ws-profile-action"
+                  type="button"
+                  onClick={() => {
+                    setProfileOpen(false);
+                    onLogout();
+                  }}
+                >
+                  <LogOut size={17} />
+                  Déconnexion
+                </button>
+              </footer>
+            </section>
           ) : null}
-        </span>
+        </div>
 
         {/* Nom et statut côte à côte, alignés sur la même ligne. */}
-        <div className="ws-user-panel-info">
-          <div className="ws-user-panel-name">{displayName}</div>
+        <TriggerTag
+          className="ws-user-panel-info ws-user-panel-info-btn"
+          {...(user
+            ? {
+                type: "button",
+                onClick: toggleProfile,
+                "aria-expanded": profileOpen,
+                "aria-controls": "ws-profile-card",
+              }
+            : {})}
+        >
+          <span className="ws-user-panel-name">{displayName}</span>
 
-          <div className="ws-user-panel-status">
-            {user ? "En ligne" : "Aperçu public"}
-          </div>
-        </div>
+          <span className="ws-user-panel-status">{statusMeta.label}</span>
+        </TriggerTag>
       </div>
 
       <div className="ws-user-panel-controls">
@@ -411,15 +634,9 @@ function UserPanel({ user, onOpenSettings, onLogout, onLogin }) {
               <SettingsIcon size={18} />
             </button>
 
-            <button
-              className="ws-user-panel-button ws-tip-up"
-              type="button"
-              data-tip="Se déconnecter"
-              aria-label="Se déconnecter"
-              onClick={onLogout}
-            >
-              <LogOut size={18} />
-            </button>
+            {/* Pas de bouton « Se déconnecter » ici : il est déjà dans la
+                carte de profil. Le garder ici mangeait la place du nom, qui
+                s'affichait en « Camil… ». */}
           </>
         ) : (
           <button
@@ -788,7 +1005,10 @@ function CommunitySidebar({
 
       <UserPanel
         user={user}
-        onOpenSettings={() => navigate("/parametres")}
+        onOpenSettings={() => navigate("/parametres/profil")}
+        onOpenProfile={
+          user ? () => navigate(`/profil/${user.id}`) : undefined
+        }
         onLogout={onLogout ? () => onLogout() : undefined}
         onLogin={() => navigate("/login")}
       />

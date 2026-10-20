@@ -42,6 +42,10 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
   const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState("");
   const [participants, setParticipants] = useState([]);
+  const [cameraOn, setCameraOn] = useState(false);
+  const [cameraBusy, setCameraBusy] = useState(false);
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStreams, setRemoteStreams] = useState({});
 
   const localStreamRef = useRef(null);
   const peersRef = useRef({});
@@ -49,6 +53,11 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
   const joinedRef = useRef(false);
   // Référence stable du « son coupé », lisible depuis les créations de pairs.
   const deafenedRef = useRef(false);
+  // Caméra : piste locale et expéditeurs vidéo de chaque pair, pour pouvoir
+  // l'activer ou la couper sans renégocier les connexions.
+  const cameraTrackRef = useRef(null);
+  const videoSendersRef = useRef({});
+  const remoteStreamsRef = useRef({});
 
   const closePeer = useCallback((remoteId) => {
     const peer = peersRef.current[remoteId];
@@ -65,6 +74,13 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
       audio.pause();
       delete audiosRef.current[remoteId];
     }
+
+    delete videoSendersRef.current[remoteId];
+
+    if (remoteStreamsRef.current[remoteId]) {
+      delete remoteStreamsRef.current[remoteId];
+      setRemoteStreams({ ...remoteStreamsRef.current });
+    }
   }, []);
 
   const leave = useCallback(() => {
@@ -78,6 +94,13 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
     setMuted(false);
     setDeafened(false);
     setParticipants([]);
+    setCameraOn(false);
+    setCameraBusy(false);
+    cameraTrackRef.current = null;
+    videoSendersRef.current = {};
+    remoteStreamsRef.current = {};
+    setRemoteStreams({});
+    setLocalStream(null);
 
     if (localStreamRef.current) {
       localStreamRef.current.getTracks().forEach((track) => track.stop());
@@ -93,7 +116,35 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
 
       stream.getTracks().forEach((track) => peer.addTrack(track, stream));
 
+      // Une piste vidéo est négociée dès le départ, même caméra coupée :
+      // l'activer ou la couper ensuite ne demande aucune renégociation.
+      const videoTransceiver = peer.addTransceiver("video", {
+        direction: "sendrecv",
+      });
+
+      videoSendersRef.current[remoteId] = videoTransceiver.sender;
+
+      if (cameraTrackRef.current) {
+        videoTransceiver.sender
+          .replaceTrack(cameraTrackRef.current)
+          .catch(() => {});
+      }
+
       peer.ontrack = (event) => {
+        let remoteStream = remoteStreamsRef.current[remoteId];
+
+        if (!remoteStream) {
+          remoteStream = new MediaStream();
+          remoteStreamsRef.current[remoteId] = remoteStream;
+        }
+
+        if (
+          event.track &&
+          !remoteStream.getTracks().some((track) => track.id === event.track.id)
+        ) {
+          remoteStream.addTrack(event.track);
+        }
+
         let audio = audiosRef.current[remoteId];
 
         if (!audio) {
@@ -102,9 +153,12 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
           audiosRef.current[remoteId] = audio;
         }
 
-        audio.srcObject = event.streams[0];
+        audio.srcObject = remoteStream;
         audio.muted = deafenedRef.current;
         audio.play().catch(() => {});
+
+        // Nouvelle piste (audio ou vidéo) : la scène doit rafraîchir la tuile.
+        setRemoteStreams({ ...remoteStreamsRef.current });
       };
 
       peer.onicecandidate = (event) => {
@@ -240,6 +294,11 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
     function handleReconnect() {
       if (joinedRef.current) {
         socket.emit("voice:join", { channelId: roomId });
+
+        // Le serveur a oublié l'état de la caméra : on le lui redonne.
+        if (cameraTrackRef.current) {
+          socket.emit("voice:camera", { channelId: roomId, camera: true });
+        }
       }
     }
 
@@ -290,6 +349,7 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
     joinedRef.current = true;
     setConnected(true);
     setConnecting(false);
+    setLocalStream(stream);
 
     socket.emit("voice:join", { channelId: roomId }, (response) => {
       if (!response || !response.success) {
@@ -322,6 +382,77 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
     socket.emit("voice:mute", { channelId: roomId, muted: next });
   }
 
+  /**
+   * Active ou coupe la caméra locale.
+   *
+   * La piste vidéo est déjà négociée avec chaque pair : on se contente de
+   * remplacer la piste envoyée (`replaceTrack`), ce qui évite une renégociation
+   * SDP à chaque bascule et fonctionne aussi pour les pairs arrivés entre-temps.
+   */
+  async function toggleCamera() {
+    if (!joinedRef.current) {
+      return;
+    }
+
+    if (cameraTrackRef.current) {
+      const track = cameraTrackRef.current;
+      cameraTrackRef.current = null;
+
+      Object.values(videoSendersRef.current).forEach((sender) => {
+        sender.replaceTrack(null).catch(() => {});
+      });
+
+      track.stop();
+
+      if (localStreamRef.current) {
+        localStreamRef.current.removeTrack(track);
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+      }
+
+      setCameraOn(false);
+      socket.emit("voice:camera", { channelId: roomId, camera: false });
+      return;
+    }
+
+    setCameraBusy(true);
+    setError("");
+
+    try {
+      const media = await navigator.mediaDevices.getUserMedia({
+        video: { width: { ideal: 640 }, height: { ideal: 360 } },
+      });
+
+      const track = media.getVideoTracks()[0];
+
+      if (!track) {
+        throw new Error("Aucune piste vidéo.");
+      }
+
+      cameraTrackRef.current = track;
+
+      await Promise.all(
+        Object.values(videoSendersRef.current).map((sender) =>
+          sender.replaceTrack(track).catch(() => {})
+        )
+      );
+
+      if (localStreamRef.current) {
+        localStreamRef.current.addTrack(track);
+        setLocalStream(new MediaStream(localStreamRef.current.getTracks()));
+      }
+
+      setCameraOn(true);
+      socket.emit("voice:camera", { channelId: roomId, camera: true });
+    } catch {
+      cameraTrackRef.current = null;
+      setError(
+        "Caméra indisponible : autorisez l'accès à la caméra dans le navigateur."
+      );
+    } finally {
+      setCameraBusy(false);
+    }
+  }
+
   // --- Pilotage à distance (sidebar / scène vocale) ------------------------
   useEffect(() => {
     function handleCommand(event) {
@@ -339,6 +470,11 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
 
       if (command === "toggle-mute") {
         toggleMute();
+        return;
+      }
+
+      if (command === "toggle-camera") {
+        toggleCamera();
         return;
       }
 
@@ -363,13 +499,29 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
           connecting,
           muted,
           deafened,
+          cameraOn,
+          cameraBusy,
+          localStream,
+          remoteStreams,
           channelId: roomId ?? null,
           error,
           participants,
         },
       })
     );
-  }, [connected, connecting, muted, deafened, error, roomId, participants]);
+  }, [
+    connected,
+    connecting,
+    muted,
+    deafened,
+    cameraOn,
+    cameraBusy,
+    localStream,
+    remoteStreams,
+    error,
+    roomId,
+    participants,
+  ]);
 
   if (!enabled || !roomId) {
     return null;
@@ -399,11 +551,11 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
           <div
             style={{
               padding: "9px 11px",
-              border: "1px solid #5a2a2d",
+              border: "1px solid var(--color-error-soft)",
               borderRadius: "8px",
-              background: "#2a1c1f",
-              color: "#f85149",
-              fontSize: "11px",
+              background: "var(--color-error-deep)",
+              color: "var(--color-error)",
+              fontSize: "13px",
               lineHeight: 1.4,
             }}
           >
@@ -418,16 +570,16 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
             display: "flex",
             alignItems: "center",
             gap: "8px",
-            height: "42px",
-            padding: "0 16px",
+            height: "46px",
+            padding: "0 18px",
             border: "none",
-            borderRadius: "21px",
-            background: "linear-gradient(135deg,#5865f2,#7985ff)",
-            color: "#f0f6fc",
-            fontSize: "12px",
+            borderRadius: "23px",
+            background: "linear-gradient(135deg,var(--color-primary),var(--color-accent-bright))",
+            color: "var(--color-text-primary)",
+            fontSize: "14px",
             fontWeight: 600,
             cursor: "pointer",
-            boxShadow: "0 8px 20px rgba(88,101,242,0.3)",
+            boxShadow: "0 8px 20px rgba(var(--color-primary-rgb), 0.3)",
           }}
         >
           <Mic size={16} />
@@ -448,17 +600,17 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
         alignItems: "center",
         gap: "8px",
         padding: "7px",
-        border: "1px solid #30363d",
+        border: "1px solid var(--color-border)",
         borderRadius: "24px",
-        background: "#161b22",
+        background: "var(--color-panel-bg)",
         boxShadow: "0 10px 28px rgba(0,0,0,0.35)",
       }}
     >
       <span
         style={{
-          paddingLeft: "9px",
-          color: "#8b949e",
-          fontSize: "11px",
+          paddingLeft: "11px",
+          color: "var(--color-text-secondary)",
+          fontSize: "13px",
         }}
       >
         Vocal · {Math.max(participants.length, 1)} participant
@@ -477,8 +629,8 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
           justifyContent: "center",
           border: "none",
           borderRadius: "50%",
-          background: muted ? "#f85149" : "#30363d",
-          color: "#f0f6fc",
+          background: muted ? "var(--color-error)" : "var(--color-border)",
+          color: "var(--color-text-primary)",
           cursor: "pointer",
         }}
       >
@@ -497,8 +649,8 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
           justifyContent: "center",
           border: "none",
           borderRadius: "50%",
-          background: deafened ? "#f85149" : "#30363d",
-          color: "#f0f6fc",
+          background: deafened ? "var(--color-error)" : "var(--color-border)",
+          color: "var(--color-text-primary)",
           cursor: "pointer",
         }}
       >
@@ -517,8 +669,8 @@ export default function VoiceChannel({ roomId, enabled = true, floating = true }
           justifyContent: "center",
           border: "none",
           borderRadius: "50%",
-          background: "#332124",
-          color: "#f85149",
+          background: "var(--color-error-deep)",
+          color: "var(--color-error)",
           cursor: "pointer",
         }}
       >

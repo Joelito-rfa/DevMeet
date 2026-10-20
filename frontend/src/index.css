@@ -5,31 +5,64 @@
    (animations.css).
    ========================================================================== */
 
-:root {
-  /* Surfaces */
-  --color-app-bg: #0d1117;
-  --color-server-sidebar: #010409;
-  --color-channel-sidebar: #161b22;
-  --color-content-bg: #1c2128;
-  --color-hover: #2d333b;
-  --color-selected: #343b4a;
+:root,
+[data-theme="discord-dark"],
+[data-theme="dark"] {
+  /* Surfaces — palette Discord sombre de référence */
+  --color-app-bg: #1e1f22;
+  --color-app-bg-rgb: 30, 31, 34;
+  --color-server-sidebar: #1e1f22;
+  --color-channel-sidebar: #2b2d31;
+  --color-channel-field: #2b2d31;
+  --color-content-bg: #313338;
+  --color-panel-bg: #232428;
+  --color-hover: #35373c;
+  --color-selected: #404249;
+  --color-rail-item: #2b2d31;
 
   /* Actions */
   --color-primary: #5865f2;
   --color-primary-hover: #4752c4;
+  --color-primary-rgb: 88, 101, 242;
+
+  /* Accents décoratifs */
+  --color-accent-bright: #7985ff;
+  --color-accent-bright-rgb: 121, 133, 255;
+  --color-accent-rgb: 121, 133, 255;
+  --color-accent-lavender: #d2a8ff;
+  --color-accent-lavender-rgb: 210, 168, 255;
+  --color-accent-cyan-rgb: 103, 232, 249;
+  --color-accent-pink: #f472b6;
 
   /* États */
-  --color-success: #3fb950;
-  --color-error: #f85149;
-  --color-warning: #d29922;
+  --color-success: #23a55a;
+  --color-success-rgb: 35, 165, 90;
+  --color-success-soft: #1f4d34;
+  --color-success-deep: #142a1e;
+  --color-error: #f23f43;
+  --color-error-rgb: 242, 63, 67;
+  --color-error-soft: #4a2426;
+  --color-error-deep: #2a1517;
+  --color-warning: #f0b232;
+  --color-warning-soft: #4a3a16;
 
   /* Textes et traits */
-  --color-text-primary: #f0f6fc;
-  --color-text-secondary: #8b949e;
-  --color-border: #30363d;
+  --color-text-primary: #f2f3f5;
+  --color-text-secondary: #b5bac1;
+  --color-text-secondary-rgb: 181, 186, 193;
+  --color-text-muted: #949ba4;
+  --color-border: #3f4147;
+  --color-border-soft: #2e3035;
 
   /* Champs */
-  --color-input-bg: #0d1117;
+  --color-input-bg: #383a40;
+  --color-input-bg-rgb: 56, 58, 64;
+  --color-input-border: #3f4147;
+  --color-panel-bg-rgb: 35, 36, 40;
+
+  /* Décor animé (Background.jsx) : les nappes suivent l'accent du thème. */
+  --theme-glow-rgb: 88, 101, 242;
+  --theme-glow-2-rgb: 121, 133, 255;
 
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: var(--color-text-primary);
@@ -38,6 +71,318 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* --------------------------------------------------------------------------
+   Thèmes clairs ? Non : tous les thèmes sont sombres, gratuits et partagent
+   exactement les mêmes jetons. Seules les couleurs changent — aucune règle de
+   mise en page, de dimension ou d'animation n'est modifiée.
+   -------------------------------------------------------------------------- */
+
+/* BADASS — violet et rose électriques, sans excès de lueur. */
+[data-theme="badass"] {
+  --color-app-bg: #17121f;
+  --color-app-bg-rgb: 23, 18, 31;
+  --color-server-sidebar: #17121f;
+  --color-channel-sidebar: #21192d;
+  --color-channel-field: #21192d;
+  --color-content-bg: #191522;
+  --color-panel-bg: #261d35;
+  --color-hover: #352645;
+  --color-selected: #49305f;
+  --color-rail-item: #21192d;
+
+  --color-primary: #b45aff;
+  --color-primary-hover: #9d4edd;
+  --color-primary-rgb: 180, 90, 255;
+
+  --color-accent-bright: #c77dff;
+  --color-accent-rgb: 199, 125, 255;
+  --color-accent-lavender: #c77dff;
+  --color-accent-lavender-rgb: 199, 125, 255;
+  --color-accent-cyan-rgb: 255, 60, 172;
+  --color-accent-pink: #ff3cac;
+
+  --color-success: #3ddc97;
+  --color-success-rgb: 61, 220, 151;
+  --color-success-soft: #1f5a43;
+  --color-success-deep: #12261f;
+  --color-error: #ff5c70;
+  --color-error-rgb: 255, 92, 112;
+  --color-error-soft: #4a2230;
+  --color-error-deep: #2a121a;
+  --color-warning: #ffc857;
+  --color-warning-soft: #4a3a16;
+
+  --color-text-primary: #f8f2ff;
+  --color-text-secondary: #bdafcb;
+  --color-text-secondary-rgb: 189, 175, 203;
+  --color-text-muted: #c9c4d8;
+  --color-border: #40304f;
+  --color-border-soft: #352645;
+
+  --color-input-bg: #21192d;
+  --color-input-bg-rgb: 33, 25, 45;
+  --color-input-border: #40304f;
+  --color-panel-bg-rgb: 38, 29, 53;
+
+  --theme-glow-rgb: 180, 90, 255;
+  --theme-glow-2-rgb: 255, 60, 172;
+}
+
+/* Midnight — presque noir et bleu électrique. */
+[data-theme="midnight"] {
+  --color-app-bg: #05070d;
+  --color-app-bg-rgb: 5, 7, 13;
+  --color-server-sidebar: #03050a;
+  --color-channel-sidebar: #0b1220;
+  --color-channel-field: #0b1220;
+  --color-content-bg: #080d17;
+  --color-panel-bg: #101827;
+  --color-hover: #182235;
+  --color-selected: #1d2a44;
+  --color-rail-item: #0b1220;
+
+  --color-primary: #3b82f6;
+  --color-primary-hover: #2563eb;
+  --color-primary-rgb: 59, 130, 246;
+
+  --color-accent-bright: #60a5fa;
+  --color-accent-rgb: 96, 165, 250;
+  --color-accent-lavender: #a5b4fc;
+  --color-accent-lavender-rgb: 165, 180, 252;
+  --color-accent-cyan-rgb: 34, 211, 238;
+  --color-accent-pink: #f472b6;
+
+  --color-success: #34d399;
+  --color-success-rgb: 52, 211, 153;
+  --color-success-soft: #164e3a;
+  --color-success-deep: #0b2a21;
+  --color-error: #f87171;
+  --color-error-rgb: 248, 113, 113;
+  --color-error-soft: #4c2228;
+  --color-error-deep: #2a1418;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #4a3a16;
+
+  --color-text-primary: #f1f5ff;
+  --color-text-secondary: #94a3b8;
+  --color-text-secondary-rgb: 148, 163, 184;
+  --color-text-muted: #b6c2d4;
+  --color-border: #1e2a3e;
+  --color-border-soft: #162033;
+
+  --color-input-bg: #0b1220;
+  --color-input-bg-rgb: 11, 18, 32;
+  --color-input-border: #263750;
+  --color-panel-bg-rgb: 16, 24, 39;
+
+  --theme-glow-rgb: 59, 130, 246;
+  --theme-glow-2-rgb: 96, 165, 250;
+}
+
+/* Ocean — bleu marine et cyan. */
+[data-theme="ocean"] {
+  --color-app-bg: #041c2c;
+  --color-app-bg-rgb: 4, 28, 44;
+  --color-server-sidebar: #03141f;
+  --color-channel-sidebar: #072b3d;
+  --color-channel-field: #072b3d;
+  --color-content-bg: #062334;
+  --color-panel-bg: #0a3145;
+  --color-hover: #0e3d52;
+  --color-selected: #124c63;
+  --color-rail-item: #072b3d;
+
+  --color-primary: #06b6d4;
+  --color-primary-hover: #0891b2;
+  --color-primary-rgb: 6, 182, 212;
+
+  --color-accent-bright: #22d3ee;
+  --color-accent-rgb: 34, 211, 238;
+  --color-accent-lavender: #67e8f9;
+  --color-accent-lavender-rgb: 103, 232, 249;
+  --color-accent-cyan-rgb: 34, 211, 238;
+  --color-accent-pink: #f472b6;
+
+  --color-success: #34d399;
+  --color-success-rgb: 52, 211, 153;
+  --color-success-soft: #0f4a3e;
+  --color-success-deep: #082821;
+  --color-error: #fb7185;
+  --color-error-rgb: 251, 113, 133;
+  --color-error-soft: #4a2230;
+  --color-error-deep: #2a121a;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #4a3a16;
+
+  --color-text-primary: #ecfeff;
+  --color-text-secondary: #9fc9d4;
+  --color-text-secondary-rgb: 159, 201, 212;
+  --color-text-muted: #b9dbe2;
+  --color-border: #134a5e;
+  --color-border-soft: #0e3a4a;
+
+  --color-input-bg: #052838;
+  --color-input-bg-rgb: 5, 40, 56;
+  --color-input-border: #1a5368;
+  --color-panel-bg-rgb: 10, 49, 69;
+
+  --theme-glow-rgb: 6, 182, 212;
+  --theme-glow-2-rgb: 34, 211, 238;
+}
+
+/* Emerald — vert profond et émeraude. */
+[data-theme="emerald"] {
+  --color-app-bg: #06130f;
+  --color-app-bg-rgb: 6, 19, 15;
+  --color-server-sidebar: #040d0a;
+  --color-channel-sidebar: #0a2119;
+  --color-channel-field: #0a2119;
+  --color-content-bg: #071a13;
+  --color-panel-bg: #0d2a20;
+  --color-hover: #123a2b;
+  --color-selected: #1a4d39;
+  --color-rail-item: #0a2119;
+
+  --color-primary: #10b981;
+  --color-primary-hover: #059669;
+  --color-primary-rgb: 16, 185, 129;
+
+  --color-accent-bright: #34d399;
+  --color-accent-rgb: 52, 211, 153;
+  --color-accent-lavender: #6ee7b7;
+  --color-accent-lavender-rgb: 110, 231, 183;
+  --color-accent-cyan-rgb: 45, 212, 191;
+  --color-accent-pink: #f472b6;
+
+  --color-success: #3ddc97;
+  --color-success-rgb: 61, 220, 151;
+  --color-success-soft: #14523d;
+  --color-success-deep: #0b2e23;
+  --color-error: #fb7185;
+  --color-error-rgb: 251, 113, 133;
+  --color-error-soft: #4a2230;
+  --color-error-deep: #2a121a;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #4a3a16;
+
+  --color-text-primary: #ecfdf5;
+  --color-text-secondary: #a7c4b8;
+  --color-text-secondary-rgb: 167, 196, 184;
+  --color-text-muted: #c2d8ce;
+  --color-border: #17402f;
+  --color-border-soft: #103126;
+
+  --color-input-bg: #082018;
+  --color-input-bg-rgb: 8, 32, 24;
+  --color-input-border: #1d513b;
+  --color-panel-bg-rgb: 13, 42, 32;
+
+  --theme-glow-rgb: 16, 185, 129;
+  --theme-glow-2-rgb: 52, 211, 153;
+}
+
+/* Sunset — anthracite chaleureux, orange et rose. */
+[data-theme="sunset"] {
+  --color-app-bg: #1a1115;
+  --color-app-bg-rgb: 26, 17, 21;
+  --color-server-sidebar: #130d10;
+  --color-channel-sidebar: #24171c;
+  --color-channel-field: #24171c;
+  --color-content-bg: #1e1418;
+  --color-panel-bg: #2a1b20;
+  --color-hover: #3a252b;
+  --color-selected: #4a2e36;
+  --color-rail-item: #24171c;
+
+  --color-primary: #f97316;
+  --color-primary-hover: #ea580c;
+  --color-primary-rgb: 249, 115, 22;
+
+  --color-accent-bright: #fb7185;
+  --color-accent-rgb: 251, 113, 133;
+  --color-accent-lavender: #f0abfc;
+  --color-accent-lavender-rgb: 240, 171, 252;
+  --color-accent-cyan-rgb: 251, 191, 36;
+  --color-accent-pink: #fb7185;
+
+  --color-success: #3ddc97;
+  --color-success-rgb: 61, 220, 151;
+  --color-success-soft: #1f4d34;
+  --color-success-deep: #122a1e;
+  --color-error: #fb7185;
+  --color-error-rgb: 251, 113, 133;
+  --color-error-soft: #4a2228;
+  --color-error-deep: #2a1418;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #4a3a16;
+
+  --color-text-primary: #fff5f0;
+  --color-text-secondary: #d1b3a9;
+  --color-text-secondary-rgb: 209, 179, 169;
+  --color-text-muted: #e2c8c0;
+  --color-border: #4a3036;
+  --color-border-soft: #3a252b;
+
+  --color-input-bg: #24171c;
+  --color-input-bg-rgb: 36, 23, 28;
+  --color-input-border: #563a41;
+  --color-panel-bg-rgb: 42, 27, 32;
+
+  --theme-glow-rgb: 249, 115, 22;
+  --theme-glow-2-rgb: 251, 113, 133;
+}
+
+/* Cotton Candy — violacé doux, rose pastel et bleu ciel. */
+[data-theme="cotton-candy"] {
+  --color-app-bg: #17121c;
+  --color-app-bg-rgb: 23, 18, 28;
+  --color-server-sidebar: #130f18;
+  --color-channel-sidebar: #221a2b;
+  --color-channel-field: #221a2b;
+  --color-content-bg: #1c1524;
+  --color-panel-bg: #2a2032;
+  --color-hover: #3a2c45;
+  --color-selected: #4b3859;
+  --color-rail-item: #221a2b;
+
+  --color-primary: #db2777;
+  --color-primary-hover: #be185d;
+  --color-primary-rgb: 219, 39, 119;
+
+  --color-accent-bright: #f9a8d4;
+  --color-accent-rgb: 249, 168, 212;
+  --color-accent-lavender: #c4b5fd;
+  --color-accent-lavender-rgb: 196, 181, 253;
+  --color-accent-cyan-rgb: 125, 211, 252;
+  --color-accent-pink: #f9a8d4;
+
+  --color-success: #3ddc97;
+  --color-success-rgb: 61, 220, 151;
+  --color-success-soft: #1f4d34;
+  --color-success-deep: #122a1e;
+  --color-error: #fb7185;
+  --color-error-rgb: 251, 113, 133;
+  --color-error-soft: #4a2228;
+  --color-error-deep: #2a1418;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #4a3a16;
+
+  --color-text-primary: #fff1f7;
+  --color-text-secondary: #cbb3c9;
+  --color-text-secondary-rgb: 203, 179, 201;
+  --color-text-muted: #e3cfe0;
+  --color-border: #4a3550;
+  --color-border-soft: #3a2a40;
+
+  --color-input-bg: #221a2b;
+  --color-input-bg-rgb: 34, 26, 43;
+  --color-input-border: #553b5e;
+  --color-panel-bg-rgb: 42, 32, 50;
+
+  --theme-glow-rgb: 219, 39, 119;
+  --theme-glow-2-rgb: 125, 211, 252;
 }
 
 * {
@@ -123,5 +468,5 @@ ul {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #484f58;
+  background: var(--color-text-muted);
 }

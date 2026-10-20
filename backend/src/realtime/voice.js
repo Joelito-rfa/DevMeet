@@ -56,6 +56,7 @@ async function handleVoiceJoin(socket, payload, ack) {
     socketId: socket.id,
     userName: socket.user.name,
     avatarUrl: socket.user.avatar_url || null,
+    camera: false,
   });
 
   // Compatibilité : ancien événement attendu par VoiceChannel.jsx
@@ -107,6 +108,30 @@ function setMuted(socket, payload, ack) {
   });
 
   ackOk(ack, { muted });
+}
+
+/**
+ * Caméra : l'état est purement indicatif côté serveur. Les flux vidéo passent
+ * par les mêmes PeerConnections que l'audio (piste vidéo déjà négociée), ce
+ * broadcast ne sert qu'à afficher le bon indicateur aux autres participants.
+ */
+function setCamera(socket, payload, ack) {
+  const channelId = payload?.channelId ?? socket.data.voiceChannelId;
+
+  if (!channelId) {
+    return ackError(ack, "Vous n'êtes pas dans un salon vocal.", "not_in_voice");
+  }
+
+  const camera = Boolean(payload?.camera);
+  registry.setVoiceCamera(channelId, socket.user.id, camera);
+
+  socket.to(channelRoom(channelId)).emit("voice:camera", {
+    channelId: Number(channelId),
+    userId: Number(socket.user.id),
+    camera,
+  });
+
+  ackOk(ack, { camera });
 }
 
 /**
@@ -188,6 +213,7 @@ module.exports = {
     socket.on("voice:join", (payload, ack) => handleVoiceJoin(socket, payload, ack));
     socket.on("voice:leave", (payload, ack) => handleVoiceLeave(socket, payload, ack));
     socket.on("voice:mute", (payload, ack) => setMuted(socket, payload, ack));
+    socket.on("voice:camera", (payload, ack) => setCamera(socket, payload, ack));
     socket.on("voice:state", (payload, ack) => voiceState(socket, payload, ack));
 
     // Signalisation (mêmes noms qu'avant, désormais contrôlés)
@@ -200,5 +226,5 @@ module.exports = {
     socket.on("voice-leave", (payload, ack) => handleVoiceLeave(socket, payload, ack));
   },
   cleanup,
-  exports: { handleVoiceJoin, handleVoiceLeave, setMuted, relaySignal },
+  exports: { handleVoiceJoin, handleVoiceLeave, setMuted, setCamera, relaySignal },
 };

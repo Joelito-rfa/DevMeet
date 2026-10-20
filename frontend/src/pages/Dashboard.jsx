@@ -486,7 +486,7 @@ function Dashboard({ token, user, onLogout }) {
       headerActions={<CreateCommunityButton onBeforeOpen={() => setError("")} />}
     >
       {/* --- Bandeau : accueil, recherche et raccourci de discussion --- */}
-      <section className="ws-home-hero">
+      <section className="ws-home-hero ws-glass ws-glow">
         <div className="ws-home-hero-text">
           <span className="ws-home-eyebrow">Tableau de bord</span>
           <h1 className="ws-home-title">
@@ -543,7 +543,7 @@ function Dashboard({ token, user, onLogout }) {
         variants={staggerParent}
       >
         {stats.map((tile) => (
-          <motion.div className="ws-home-tile" key={tile.key} variants={fadeUp}>
+          <motion.div className="ws-home-tile ws-glass" key={tile.key} variants={fadeUp}>
             <span className="ws-home-tile-icon">{tile.icon}</span>
 
             <div className="ws-home-tile-body">
@@ -560,7 +560,7 @@ function Dashboard({ token, user, onLogout }) {
         <div className="ws-home-main">
           <section className="ws-section">
             <div className="ws-section-header">
-              <h2 className="ws-section-title">Mes communautés</h2>
+              <h2 className="ws-section-title ws-gradient-text">Mes communautés</h2>
               <span className="ws-muted">{mine.length} affichée(s)</span>
             </div>
 
@@ -620,7 +620,7 @@ function Dashboard({ token, user, onLogout }) {
 
                   return (
                     <motion.div
-                      className="ws-home-card"
+                      className="ws-home-card ws-card-3d"
                       key={community.id}
                       layout
                       initial={{ opacity: 0, y: 16 }}
@@ -683,7 +683,7 @@ function Dashboard({ token, user, onLogout }) {
 
           <section className="ws-section">
             <div className="ws-section-header">
-              <h2 className="ws-section-title">
+              <h2 className="ws-section-title ws-gradient-text">
                 Découvrir des communautés publiques
               </h2>
               <span className="ws-muted">{discover.length} ouverte(s)</span>
@@ -763,9 +763,9 @@ function Dashboard({ token, user, onLogout }) {
 
         <aside className="ws-home-aside">
           {/* --- Messages privés : présence, non-lus, accès direct --- */}
-          <section className="ws-card ws-home-panel">
+          <section className="ws-card ws-home-panel ws-glass ws-card-3d">
             <div className="ws-home-panel-head">
-              <h3 className="ws-home-panel-title">
+              <h3 className="ws-home-panel-title ws-gradient-text">
                 <MessageSquare size={18} /> Messages privés
                 {unreadDmCount > 0 ? (
                   <span className="ws-count-badge">
@@ -882,9 +882,9 @@ function Dashboard({ token, user, onLogout }) {
           </section>
 
           {/* --- Activité : dernières notifications, tout marquer comme lu --- */}
-          <section className="ws-card ws-home-panel">
+          <section className="ws-card ws-home-panel ws-glass ws-card-3d">
             <div className="ws-home-panel-head">
-              <h3 className="ws-home-panel-title">
+              <h3 className="ws-home-panel-title ws-gradient-text">
                 <Bell size={18} /> Activité
               </h3>
 

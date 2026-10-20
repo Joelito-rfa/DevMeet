@@ -14,7 +14,16 @@ import Dashboard from "./pages/Dashboard";
 import Discover from "./pages/Discover";
 import Community from "./pages/Community";
 import Channel from "./pages/Channel";
-import Settings from "./pages/Settings";
+import ProfilePage from "./pages/ProfilePage";
+import SettingsLayout from "./pages/settings/SettingsLayout";
+import AccountSettings from "./pages/settings/AccountSettings";
+import ProfileSettings from "./pages/settings/ProfileSettings";
+import AppearanceSettings from "./pages/settings/AppearanceSettings";
+import ProfileCustomizationSettings from "./pages/settings/ProfileCustomizationSettings";
+import PresenceSettings from "./pages/settings/PresenceSettings";
+import NotificationSettings from "./pages/settings/NotificationSettings";
+import PrivacySettings from "./pages/settings/PrivacySettings";
+import AboutSettings from "./pages/settings/AboutSettings";
 import Invite from "./pages/Invite";
 import NotificationsPage from "./pages/NotificationsPage";
 import DirectMessages from "./pages/DirectMessages";
@@ -22,6 +31,7 @@ import OAuthCallback from "./pages/OAuthCallback";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import AnimatedBackground from "./components/layout/Background";
+import { ThemeProvider } from "./theme/ThemeProvider";
 import { connectSocket, disconnectSocket } from "./services/socket";
 import {
   apiFetch,
@@ -153,8 +163,14 @@ function App() {
   const authenticated = status === "authenticated";
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh" }}>
-      <AnimatedBackground variant={isAuthRoute ? "auth" : "default"} />
+    <ThemeProvider
+      key={user?.id ? `user-${user.id}` : "anonymous"}
+      user={user}
+      token={token}
+      onUserChanged={handleUserUpdated}
+    >
+      <div style={{ position: "relative", minHeight: "100vh" }}>
+        <AnimatedBackground variant={isAuthRoute ? "auth" : "default"} />
 
       <AnimatePresence mode="wait">
         <motion.div
@@ -277,16 +293,41 @@ function App() {
                 />
 
                 <Route
-                  path="/parametres"
+                  path="/profil/:id"
                   element={
-                    <Settings
+                    <ProfilePage
+                      token={token}
+                      user={user}
+                      onLogout={handleLogout}
+                    />
+                  }
+                />
+
+                <Route path="/parametres" element={<Navigate to="/parametres/profil" replace />} />
+
+                <Route
+                  path="/parametres/*"
+                  element={
+                    <SettingsLayout
                       token={token}
                       user={user}
                       onLogout={handleLogout}
                       onUserUpdated={handleUserUpdated}
                     />
                   }
-                />
+                >
+                  <Route path="compte" element={<AccountSettings />} />
+                  <Route path="profil" element={<ProfileSettings key={user?.id} />} />
+                  <Route path="apparence" element={<AppearanceSettings />} />
+                  <Route
+                    path="profil/personnalisation"
+                    element={<ProfileCustomizationSettings />}
+                  />
+                  <Route path="presence" element={<PresenceSettings />} />
+                  <Route path="notifications" element={<NotificationSettings />} />
+                  <Route path="confidentialite" element={<PrivacySettings />} />
+                  <Route path="a-propos" element={<AboutSettings />} />
+                </Route>
 
                 <Route
                   path="/messages"
@@ -340,7 +381,8 @@ function App() {
           </Routes>
         </motion.div>
       </AnimatePresence>
-    </div>
+      </div>
+    </ThemeProvider>
   );
 }
 

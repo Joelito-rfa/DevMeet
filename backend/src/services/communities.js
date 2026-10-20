@@ -228,9 +228,16 @@ async function resolveRolesFor(rows, userId) {
   const byId = new Map(
     roleRows.map((row) => [
       Number(row.id),
-      rolesService.hydrate(row, {
-        permissions: permissionsByRole.get(Number(row.id)) || [],
-      }),
+
+      // Le rôle propriétaire n'a pas de permissions propres en base : il les
+      // détient par nature. Sans ce raccourci, `hydrate` renverrait un rôle
+      // « owner » marqué `isOwner: false`, et l'interface laisserait le
+      // propriétaire quitter sa propre communauté.
+      row.key === ROLES.OWNER
+        ? rolesService.ownerRole(Number(row.community_id))
+        : rolesService.hydrate(row, {
+            permissions: permissionsByRole.get(Number(row.id)) || [],
+          }),
     ])
   );
 
@@ -538,6 +545,7 @@ async function listMembers(communityId) {
   const rows = await query(
     `SELECT cm.user_id, cm.role_id, cm.joined_at,
             u.name, u.email, u.avatar_url, u.status,
+            u.profile_background, u.profile_banner, u.avatar_frame, u.profile_effects,
             r.\`key\` AS role_key, r.name AS role_name, r.\`rank\` AS role_rank,
             r.color AS role_color, r.is_system AS role_is_system,
             r.is_assignable AS role_is_assignable

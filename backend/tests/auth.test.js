@@ -192,6 +192,131 @@ test("le profil modifié est immédiatement relu depuis la base", async () => {
   assert.equal(row.name, "Nouveau Pseudonyme");
 });
 
+test("le thème BADASS gratuit est enregistré et relu", async () => {
+  const account = await createAccount("theme");
+  created.push(account);
+
+  const updated = await api("/api/auth/me", {
+    method: "PATCH",
+    token: account.token,
+    body: { theme: "badass" },
+  });
+
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.user.theme, "badass");
+
+  // Le choix survit à une relecture depuis la base.
+  const me = await api("/api/auth/me", { token: account.token });
+  assert.equal(me.status, 200);
+  assert.equal(me.body.user.theme, "badass");
+
+  // Les thèmes ajoutés au catalogue sont également acceptés.
+  const dark = await api("/api/auth/me", {
+    method: "PATCH",
+    token: account.token,
+    body: { theme: "discord-dark" },
+  });
+  assert.equal(dark.status, 200);
+  assert.equal(dark.body.user.theme, "discord-dark");
+
+  // Un identifiant inconnu reste refusé.
+  const invalid = await api("/api/auth/me", {
+    method: "PATCH",
+    token: account.token,
+    body: { theme: "ultra" },
+  });
+  assert.equal(invalid.status, 400);
+});
+
+test("les décorations de profil sont validées, persistées et visibles publiquement", async () => {
+  const owner = await createAccount("deco-owner");
+  const viewer = await createAccount("deco-viewer");
+  created.push(owner, viewer);
+
+  const decorations = {
+    profileBackground: "cosmic-space",
+    profileBanner: "cosmic-nebula",
+    avatarFrame: "purple-neon",
+    profileEffects: ["halo", "holographic"],
+  };
+
+  const updated = await api("/api/auth/me", {
+    method: "PATCH",
+    token: owner.token,
+    body: decorations,
+  });
+
+  assert.equal(updated.status, 200);
+  assert.equal(updated.body.user.profileBackground, decorations.profileBackground);
+  assert.equal(updated.body.user.profileBanner, decorations.profileBanner);
+  assert.equal(updated.body.user.avatarFrame, decorations.avatarFrame);
+  assert.deepEqual(updated.body.user.profileEffects, decorations.profileEffects);
+
+  // Les valeurs sont réellement enregistrées, pas seulement renvoyées.
+  const row = await queryOne(
+    "SELECT profile_background, profile_banner, avatar_frame, profile_effects FROM users WHERE id = ?",
+    [owner.id]
+  );
+  assert.equal(row.profile_background, decorations.profileBackground);
+  assert.equal(row.avatar_frame, decorations.avatarFrame);
+
+  // Un autre utilisateur voit les décorations sur le profil public.
+  const publicProfile = await api(`/api/users/${owner.id}/profile`, {
+    token: viewer.token,
+  });
+
+  assert.equal(publicProfile.status, 200);
+  assert.equal(publicProfile.body.profile.name, owner.name);
+  assert.equal(
+    publicProfile.body.profile.profileBackground,
+    decorations.profileBackground
+  );
+  assert.deepEqual(
+    publicProfile.body.profile.profileEffects,
+    decorations.profileEffects
+  );
+  assert.equal(publicProfile.body.profile.email, undefined);
+
+  // Le profil public reste protégé par l'authentification.
+  const anonymous = await api(`/api/users/${owner.id}/profile`);
+  assert.equal(anonymous.status, 401);
+
+  // Une valeur hors catalogue est refusée et n'écrase pas l'existant.
+  const invalidBackground = await api("/api/auth/me", {
+    method: "PATCH",
+    token: owner.token,
+    body: { profileBackground: "url-distante" },
+  });
+  assert.equal(invalidBackground.status, 400);
+  assert.equal(invalidBackground.body.code, "invalid_profile_decoration");
+
+  const invalidEffect = await api("/api/auth/me", {
+    method: "PATCH",
+    token: owner.token,
+    body: { profileEffects: ["halo", "explosion"] },
+  });
+  assert.equal(invalidEffect.status, 400);
+  assert.equal(invalidEffect.body.code, "invalid_profile_effects");
+
+  // Une remise à zéro efface bien les quatre préférences.
+  const reset = await api("/api/auth/me", {
+    method: "PATCH",
+    token: owner.token,
+    body: {
+      profileBackground: null,
+      profileBanner: null,
+      avatarFrame: null,
+      profileEffects: [],
+    },
+  });
+
+  assert.equal(reset.status, 200);
+  assert.equal(reset.body.user.profileBackground, null);
+  assert.equal(reset.body.user.profileBanner, null);
+  assert.equal(reset.body.user.avatarFrame, null);
+  assert.deepEqual(reset.body.user.profileEffects, []);
+});
+
 test("un compte supprimé perd immédiatement son accès", async () => {
   const account = await createAccount("supprime");
 

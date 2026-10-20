@@ -1,0 +1,1366 @@
+/* ==========================================================================
+   Décorations de profil — rendues uniquement en CSS.
+   Les couleurs de structure passent par les jetons --color-* ; les fonds,
+   bannières et cadres sont des dégradés autonomes, compatibles avec les
+   textes clairs et sans image à télécharger.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Carte de profil réutilisable
+   -------------------------------------------------------------------------- */
+
+.pf-profile {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  background: var(--color-panel-bg);
+  color: var(--color-text-primary);
+  isolation: isolate;
+}
+
+.pf-profile.has-background {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.pf-banner {
+  position: relative;
+  z-index: 1;
+  height: 72px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(115deg, rgba(var(--color-primary-rgb), 0.34), transparent 58%),
+    var(--color-content-bg);
+}
+
+.pf-profile-body {
+  position: relative;
+  z-index: 2;
+  padding: 0 18px 18px;
+}
+
+.pf-profile-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+  margin-top: -30px;
+}
+
+.pf-identity {
+  min-width: 0;
+  padding-bottom: 3px;
+}
+
+.pf-name {
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-primary);
+  font-size: 18px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pf-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  color: var(--color-text-secondary);
+  font-size: 12.5px;
+}
+
+.pf-status-dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.pf-bio {
+  margin: 14px 0 0;
+  color: var(--color-text-primary);
+  font-size: 13.5px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.pf-bio.is-empty {
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.pf-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin: 15px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.pf-profile:not(.has-background) .pf-meta {
+  border-top-color: var(--color-border-soft);
+}
+
+.pf-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-meta dt {
+  color: var(--color-text-secondary);
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pf-meta dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 12.5px;
+  font-weight: 650;
+  text-transform: capitalize;
+}
+
+.pf-profile-actions {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.16);
+}
+
+/* --------------------------------------------------------------------------
+   Avatar et cadres
+   -------------------------------------------------------------------------- */
+
+.pf-avatar {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--color-border);
+}
+
+.pf-avatar.has-frame {
+  padding: 3px;
+}
+
+.pf-avatar--lg {
+  width: 86px;
+  height: 86px;
+  border: 3px solid var(--color-panel-bg);
+  box-shadow: 0 8px 24px -12px rgba(0, 0, 0, 0.9);
+}
+
+.pf-avatar--md {
+  width: 48px;
+  height: 48px;
+  border: 2px solid var(--color-panel-bg);
+}
+
+.pf-avatar--sm {
+  width: 34px;
+  height: 34px;
+  border: 2px solid var(--color-panel-bg);
+}
+
+.pf-avatar-inner {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary-hover), var(--color-accent-bright));
+  color: #fff;
+}
+
+.pf-avatar-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pf-avatar-initials {
+  font-size: 0.38em;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.pf-avatar--lg .pf-avatar-initials {
+  font-size: 24px;
+}
+
+.pf-avatar--md .pf-avatar-initials {
+  font-size: 15px;
+}
+
+.pf-avatar--sm .pf-avatar-initials {
+  font-size: 11px;
+}
+
+.pf-avatar-status {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-panel-bg);
+  border-radius: 50%;
+  background: var(--color-text-muted);
+}
+
+.pf-avatar--sm .pf-avatar-status {
+  width: 11px;
+  height: 11px;
+  border-width: 1.5px;
+}
+
+.pf-avatar-status.pf-status-online,
+.pf-status-dot.pf-status-online {
+  background: var(--color-success);
+}
+
+.pf-avatar-status.pf-status-away,
+.pf-status-dot.pf-status-away {
+  background: var(--color-warning);
+}
+
+.pf-avatar-status.pf-status-busy,
+.pf-status-dot.pf-status-busy {
+  background: var(--color-error);
+}
+
+.pf-avatar-status.pf-status-offline,
+.pf-status-dot.pf-status-offline {
+  background: var(--color-text-muted);
+}
+
+/* Cadres : l'anneau est le fond du conteneur, l'avatar reste au centre. */
+.pf-frame-purple-neon {
+  background: linear-gradient(135deg, #c77dff, #ff3cac 52%, #7b2ff7);
+  box-shadow: 0 0 18px -5px rgba(199, 125, 255, 0.7);
+}
+
+.pf-frame-electric-blue {
+  background: linear-gradient(135deg, #67e8f9, #3b82f6 55%, #1d4ed8);
+  box-shadow: 0 0 18px -5px rgba(59, 130, 246, 0.65);
+}
+
+.pf-frame-crimson-ring {
+  background: linear-gradient(135deg, #fda4af, #e11d48 60%, #881337);
+}
+
+.pf-frame-emerald-ring {
+  background: linear-gradient(135deg, #a7f3d0, #10b981 58%, #047857);
+}
+
+.pf-frame-cosmic-frame {
+  background:
+    radial-gradient(circle at 28% 22%, #fff 0 1px, transparent 2px),
+    radial-gradient(circle at 72% 76%, #fff 0 1px, transparent 2px),
+    conic-gradient(from 30deg, #c4b5fd, #6366f1, #f0abfc, #312e81, #c4b5fd);
+}
+
+.pf-frame-minimal-silver {
+  background: linear-gradient(135deg, #f8fafc, #94a3b8 58%, #475569);
+}
+
+.pf-frame-golden-glow {
+  background: linear-gradient(135deg, #fef3c7, #fbbf24 55%, #b45309);
+  box-shadow: 0 0 16px -4px rgba(251, 191, 36, 0.65);
+}
+
+.pf-frame-cyber-frame {
+  background:
+    conic-gradient(
+      from 0deg,
+      #22d3ee 0 10%,
+      #0f172a 10% 16%,
+      #38bdf8 16% 33%,
+      #0f172a 33% 40%,
+      #22d3ee 40% 62%,
+      #0f172a 62% 69%,
+      #67e8f9 69% 90%,
+      #0f172a 90% 100%
+    );
+  box-shadow: 0 0 16px -5px rgba(34, 211, 238, 0.7);
+}
+
+/* --------------------------------------------------------------------------
+   Fonds de profil
+   -------------------------------------------------------------------------- */
+
+.pf-bg-midnight-purple {
+  background:
+    radial-gradient(circle at 18% 0%, rgba(157, 78, 221, 0.4), transparent 46%),
+    linear-gradient(145deg, #1a1026, #0d0b16 62%, #171021);
+}
+
+.pf-bg-neon-violet {
+  background:
+    radial-gradient(circle at 85% 8%, rgba(255, 60, 172, 0.3), transparent 43%),
+    linear-gradient(135deg, #211038, #120a22 60%, #1e0b2e);
+}
+
+.pf-bg-cyber-blue {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(34, 211, 238, 0.3), transparent 44%),
+    linear-gradient(135deg, #071a2b, #08101f 60%, #0b2234);
+}
+
+.pf-bg-crimson-night {
+  background:
+    radial-gradient(circle at 80% 10%, rgba(244, 63, 94, 0.32), transparent 45%),
+    linear-gradient(145deg, #240c13, #12080d 60%, #1e0b10);
+}
+
+.pf-bg-emerald-glow {
+  background:
+    radial-gradient(circle at 20% 0%, rgba(61, 220, 151, 0.3), transparent 46%),
+    linear-gradient(145deg, #082019, #07130f 60%, #0a241b);
+}
+
+.pf-bg-cosmic-space {
+  background:
+    radial-gradient(circle at 16% 24%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 64% 14%, rgba(255, 255, 255, 0.65) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 82% 36%, rgba(255, 255, 255, 0.8) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 38% 48%, rgba(199, 125, 255, 0.9) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 72% 68%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 24% 82%, rgba(103, 232, 249, 0.8) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 50% 0%, rgba(123, 47, 247, 0.32), transparent 58%),
+    linear-gradient(150deg, #0a0b1e, #11102a 55%, #080a16);
+}
+
+.pf-bg-sunset-gradient {
+  background:
+    radial-gradient(circle at 82% 14%, rgba(251, 113, 133, 0.4), transparent 42%),
+    radial-gradient(circle at 18% 100%, rgba(249, 115, 22, 0.35), transparent 48%),
+    linear-gradient(140deg, #2b1520, #21142a 52%, #13111f);
+}
+
+.pf-bg-abstract-dark {
+  background:
+    repeating-linear-gradient(115deg, transparent 0 22px, rgba(255, 255, 255, 0.035) 22px 23px),
+    radial-gradient(circle at 78% 18%, rgba(148, 163, 184, 0.2), transparent 42%),
+    linear-gradient(135deg, #26262e, #111116 55%, #1d1b22);
+}
+
+.pf-bg-aurora {
+  background:
+    radial-gradient(ellipse at 20% 0%, rgba(61, 220, 151, 0.3), transparent 42%),
+    radial-gradient(ellipse at 82% 12%, rgba(157, 78, 221, 0.32), transparent 46%),
+    radial-gradient(ellipse at 52% 100%, rgba(34, 211, 238, 0.18), transparent 48%),
+    linear-gradient(150deg, #0a1a1a, #0d1020 60%, #1a1224);
+}
+
+.pf-bg-minimal-black {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.07), transparent 40%),
+    linear-gradient(145deg, #16161a, #0c0c0f);
+}
+
+/* --------------------------------------------------------------------------
+   Bannières
+   -------------------------------------------------------------------------- */
+
+.pf-banner-violet-dusk {
+  background: linear-gradient(120deg, #2a1240, #5b2a86 55%, #b45aff);
+}
+
+.pf-banner-abstract-shard {
+  background:
+    linear-gradient(115deg, #0e1020 0 38%, #2b1f4a 38% 52%, #1a2f4a 52% 70%, #10101a 70%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.15), transparent 32%);
+}
+
+.pf-banner-cosmic-nebula {
+  background:
+    radial-gradient(circle at 22% 38%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.6px),
+    radial-gradient(circle at 68% 22%, rgba(255, 255, 255, 0.7) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 84% 64%, rgba(255, 255, 255, 0.65) 0 1px, transparent 1.5px),
+    radial-gradient(ellipse at 35% 40%, rgba(139, 92, 246, 0.75), transparent 46%),
+    linear-gradient(120deg, #120b2e, #3b1d63 55%, #0b1a3a);
+}
+
+.pf-banner-light-waves {
+  background:
+    repeating-radial-gradient(ellipse at 20% 120%, transparent 0 18px, rgba(121, 133, 255, 0.24) 19px 20px),
+    linear-gradient(120deg, #12152f, #24306b 60%, #0d1024);
+}
+
+.pf-banner-cyber-grid {
+  background:
+    linear-gradient(rgba(34, 211, 238, 0.16) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.16) 1px, transparent 1px),
+    radial-gradient(circle at 78% 20%, rgba(34, 211, 238, 0.35), transparent 42%),
+    linear-gradient(120deg, #07131f, #0c2b3d 60%, #07131f);
+  background-size: 16px 16px, 16px 16px, auto, auto;
+}
+
+.pf-banner-emerald-aurora {
+  background:
+    radial-gradient(ellipse at 30% 0%, rgba(52, 211, 153, 0.55), transparent 52%),
+    radial-gradient(ellipse at 85% 100%, rgba(34, 211, 238, 0.22), transparent 46%),
+    linear-gradient(120deg, #061a16, #0b2b24 55%, #071410);
+}
+
+.pf-banner-crimson-ember {
+  background:
+    radial-gradient(circle at 80% 20%, rgba(251, 113, 133, 0.55), transparent 46%),
+    radial-gradient(circle at 20% 100%, rgba(249, 115, 22, 0.35), transparent 42%),
+    linear-gradient(120deg, #2a0c15, #4a1622 60%, #190910);
+}
+
+.pf-banner-minimal-line {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 21.9%,
+      rgba(255, 255, 255, 0.16) 22%,
+      transparent 22.1% 64.9%,
+      rgba(255, 255, 255, 0.1) 65%,
+      transparent 65.1%
+    ),
+    linear-gradient(120deg, #1b1b20, #101014);
+}
+
+/* --------------------------------------------------------------------------
+   Effets
+   -------------------------------------------------------------------------- */
+
+.pf-effect-halo {
+  box-shadow:
+    0 0 0 1px rgba(var(--color-primary-rgb), 0.16),
+    0 0 36px -8px rgba(var(--theme-glow-rgb), 0.45);
+}
+
+.pf-effect-violet-glow {
+  box-shadow: 0 0 42px -9px rgba(157, 78, 221, 0.58);
+}
+
+.pf-effect-neon-static {
+  border-color: rgba(var(--color-accent-rgb), 0.7);
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--color-accent-rgb), 0.22),
+    0 0 24px -8px rgba(var(--color-accent-rgb), 0.62);
+}
+
+.pf-effect-animated-outline::after {
+  position: absolute;
+  z-index: 3;
+  inset: 5px;
+  border: 1px solid rgba(var(--color-accent-rgb), 0.5);
+  border-radius: 12px;
+  content: "";
+  pointer-events: none;
+  animation: pf-outline-breathe 4.5s ease-in-out infinite;
+}
+
+.pf-effect-holographic::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 18%,
+    rgba(var(--color-accent-rgb), 0.12) 36%,
+    rgba(var(--color-accent-lavender-rgb), 0.1) 50%,
+    rgba(var(--color-accent-cyan-rgb), 0.08) 64%,
+    transparent 82%
+  );
+  content: "";
+  pointer-events: none;
+  animation: pf-holographic-sheen 9s ease-in-out infinite alternate;
+}
+
+.pf-particles {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 12% 24%, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 78% 16%, rgba(199, 125, 255, 0.9) 0 1px, transparent 1.9px),
+    radial-gradient(circle at 36% 68%, rgba(255, 255, 255, 0.65) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 86% 58%, rgba(103, 232, 249, 0.75) 0 1px, transparent 1.8px),
+    radial-gradient(circle at 62% 86%, rgba(255, 255, 255, 0.55) 0 1px, transparent 1.6px);
+  opacity: 0.75;
+  pointer-events: none;
+  animation: pf-particles-drift 14s ease-in-out infinite alternate;
+}
+
+@keyframes pf-outline-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    box-shadow: 0 0 10px -5px rgba(var(--color-accent-rgb), 0.35);
+  }
+
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 16px -4px rgba(var(--color-accent-rgb), 0.55);
+  }
+}
+
+@keyframes pf-holographic-sheen {
+  from {
+    transform: translateX(-8%);
+    opacity: 0.55;
+  }
+
+  to {
+    transform: translateX(8%);
+    opacity: 0.95;
+  }
+}
+
+@keyframes pf-particles-drift {
+  from {
+    transform: translateY(-3px);
+  }
+
+  to {
+    transform: translateY(3px);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Fenêtre de personnalisation
+   -------------------------------------------------------------------------- */
+
+.pf-modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  animation: pf-backdrop-in 0.18s ease both;
+}
+
+.pf-customization {
+  display: flex;
+  width: min(1060px, 100%);
+  max-height: min(860px, calc(100vh - 48px));
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-panel-bg);
+  box-shadow: 0 28px 80px -34px rgba(0, 0, 0, 0.9);
+  color: var(--color-text-primary);
+  animation: pf-modal-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.pf-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 17px 22px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-content-bg);
+}
+
+.pf-modal-eyebrow {
+  margin: 0 0 3px;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.pf-modal-title {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.pf-modal-close {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-input-bg);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.pf-modal-close:hover {
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+}
+
+.pf-customization-body {
+  display: grid;
+  min-height: 0;
+  flex: 1;
+  grid-template-columns: minmax(290px, 350px) minmax(0, 1fr);
+  overflow: hidden;
+}
+
+.pf-preview-column {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding: 20px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-app-bg);
+}
+
+.pf-preview-caption {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pf-preview-help {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+
+.pf-editor-column {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.pf-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 4px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-input-bg);
+}
+
+.pf-tab {
+  display: inline-flex;
+  min-height: 34px;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 12.5px;
+  font-weight: 650;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pf-tab.is-active {
+  background: var(--color-selected);
+  color: var(--color-text-primary);
+  box-shadow: inset 0 -2px 0 var(--color-primary);
+}
+
+.pf-tab:hover {
+  color: var(--color-text-primary);
+}
+
+.pf-tab-panel {
+  min-height: 270px;
+}
+
+.pf-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(142px, 1fr));
+  gap: 10px;
+}
+
+.pf-choice {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  padding: 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-choice:hover {
+  border-color: rgba(var(--color-primary-rgb), 0.55);
+  background: var(--color-hover);
+}
+
+.pf-choice.is-active {
+  border-color: var(--color-primary);
+  box-shadow:
+    0 0 0 1px rgba(var(--color-primary-rgb), 0.4),
+    0 10px 24px -20px rgba(var(--color-primary-rgb), 0.8);
+}
+
+.pf-choice-visual {
+  display: block;
+  height: 48px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 7px;
+  background-color: var(--color-panel-bg);
+}
+
+.pf-choice-background,
+.pf-choice-banner {
+  background-size: cover;
+}
+
+.pf-choice-none {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-style: dashed;
+  border-color: var(--color-border);
+  background: var(--color-panel-bg);
+  color: var(--color-text-secondary);
+  font-size: 18px;
+}
+
+.pf-choice-banner {
+  height: 54px;
+}
+
+.pf-choice-grid--banners {
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.pf-choice-grid--frames {
+  grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+}
+
+.pf-choice--frame {
+  align-items: center;
+  text-align: center;
+}
+
+.pf-choice-frame-preview,
+.pf-choice-frame {
+  display: flex;
+  height: 58px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pf-choice-frame {
+  border: 1px dashed var(--color-border);
+  border-radius: 50%;
+}
+
+.pf-choice-label {
+  display: block;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.3;
+  text-overflow: ellipsis;
+}
+
+.pf-choice-hint {
+  display: block;
+  margin-top: -4px;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+}
+
+.pf-choice-check {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  padding: 2px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.pf-effects-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pf-panel-help {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pf-effect-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.pf-effect-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 11px;
+  border: 1px solid var(--color-border);
+  border-radius: 11px;
+  background: var(--color-input-bg);
+  color: var(--color-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pf-effect-choice:hover {
+  border-color: rgba(var(--color-primary-rgb), 0.5);
+  background: var(--color-hover);
+}
+
+.pf-effect-choice.is-active {
+  border-color: rgba(var(--color-primary-rgb), 0.8);
+  background: rgba(var(--color-primary-rgb), 0.1);
+}
+
+.pf-effect-preview {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 9px;
+  background: linear-gradient(145deg, #1a1422, #0d0b12);
+}
+
+.pf-effect-preview--halo {
+  box-shadow: inset 0 0 16px -2px rgba(var(--color-primary-rgb), 0.75);
+}
+
+.pf-effect-preview--violet-glow {
+  box-shadow: inset 0 0 18px -1px rgba(157, 78, 221, 0.9);
+}
+
+.pf-effect-preview--animated-outline {
+  border-color: rgba(var(--color-accent-rgb), 0.7);
+  box-shadow: inset 0 0 0 2px rgba(var(--color-accent-rgb), 0.2);
+}
+
+.pf-effect-preview--particles {
+  background-image:
+    radial-gradient(circle at 24% 28%, #fff 0 1px, transparent 1.7px),
+    radial-gradient(circle at 68% 22%, #c77dff 0 1px, transparent 1.8px),
+    radial-gradient(circle at 40% 72%, #fff 0 1px, transparent 1.6px),
+    radial-gradient(circle at 80% 64%, #67e8f9 0 1px, transparent 1.7px),
+    linear-gradient(145deg, #1a1422, #0d0b12);
+}
+
+.pf-effect-preview--neon-static {
+  border-color: rgba(var(--color-accent-rgb), 0.8);
+  box-shadow: inset 0 0 10px -2px rgba(var(--color-accent-rgb), 0.8);
+}
+
+.pf-effect-preview--holographic {
+  background:
+    linear-gradient(135deg, rgba(199, 125, 255, 0.55), rgba(103, 232, 249, 0.35) 48%, rgba(255, 60, 172, 0.5)),
+    #17121f;
+}
+
+.pf-effect-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pf-effect-label {
+  font-size: 12.5px;
+  font-weight: 650;
+}
+
+.pf-effect-desc {
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.pf-switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-left: auto;
+  border-radius: 999px;
+  background: var(--color-border);
+  transition: background-color 0.18s ease;
+}
+
+.pf-switch > span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.18s ease;
+}
+
+.pf-switch.is-on {
+  background: var(--color-primary);
+}
+
+.pf-switch.is-on > span {
+  transform: translateX(16px);
+}
+
+.pf-clear-effects {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pf-clear-effects:hover:not(:disabled) {
+  background: var(--color-hover);
+  color: var(--color-text-primary);
+}
+
+.pf-clear-effects:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.pf-modal-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 13px 22px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-content-bg);
+}
+
+.pf-save-hint {
+  max-width: 420px;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.pf-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Profil public
+   -------------------------------------------------------------------------- */
+
+.pf-public-profile {
+  width: min(540px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background: var(--color-panel-bg);
+  box-shadow: 0 28px 80px -34px rgba(0, 0, 0, 0.9);
+  color: var(--color-text-primary);
+  animation: pf-modal-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.pf-public-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pf-public-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(var(--color-primary-rgb), 0.12);
+  color: var(--color-accent-bright);
+}
+
+.pf-public-body {
+  padding: 18px;
+}
+
+.pf-public-body .pf-profile {
+  border: 0;
+  box-shadow: none;
+}
+
+.pf-modal-loading {
+  display: flex;
+  min-height: 220px;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.pf-spin {
+  animation: pf-spin 0.9s linear infinite;
+}
+
+@keyframes pf-backdrop-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pf-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes pf-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Intégration dans la carte de compte de la sidebar
+   -------------------------------------------------------------------------- */
+
+.ws-profile-card.has-profile-background {
+  background-color: var(--color-panel-bg);
+}
+
+.ws-profile-card.has-profile-background .ws-profile-head,
+.ws-profile-card.has-profile-background .ws-profile-body,
+.ws-profile-card.has-profile-background .ws-profile-foot {
+  background: transparent;
+}
+
+.ws-profile-card.has-profile-background .ws-profile-foot {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.ws-profile-card.has-profile-background .ws-profile-meta {
+  border-top-color: rgba(255, 255, 255, 0.12);
+}
+
+.ws-profile-card .pf-banner {
+  height: 62px;
+}
+
+.ws-profile-card .pf-avatar {
+  border-color: var(--color-content-bg);
+}
+
+.ws-profile-card .pf-avatar-status {
+  border-color: var(--color-content-bg);
+}
+
+.ws-profile-card.has-profile-background .pf-avatar,
+.ws-profile-card.has-profile-background .pf-avatar-status {
+  border-color: var(--color-panel-bg);
+}
+
+.ws-profile-card .ws-profile-head {
+  background: var(--color-content-bg);
+}
+
+.ws-profile-card .ws-profile-avatar {
+  width: 48px;
+  height: 48px;
+}
+
+.ws-profile-card.has-profile-background .ws-profile-head,
+.ws-profile-card.has-profile-background .ws-profile-body {
+  background: transparent;
+}
+
+.ws-profile-card .ws-profile-head {
+  position: relative;
+  z-index: 2;
+}
+
+.ws-profile-card .pf-particles,
+.ws-profile-card.pf-effect-holographic::before {
+  z-index: 1;
+}
+
+.ws-profile-card .ws-profile-body,
+.ws-profile-card .ws-profile-foot {
+  position: relative;
+  z-index: 2;
+}
+
+/* --------------------------------------------------------------------------
+   Responsive
+   -------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .pf-customization {
+    max-height: calc(100vh - 32px);
+  }
+
+  .pf-customization-body {
+    grid-template-columns: minmax(260px, 300px) minmax(0, 1fr);
+  }
+
+  .pf-choice-grid {
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .pf-modal-backdrop {
+    padding: 10px;
+    align-items: stretch;
+  }
+
+  .pf-customization {
+    width: 100%;
+    max-height: calc(100vh - 20px);
+  }
+
+  .pf-customization-body {
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .pf-preview-column {
+    flex-shrink: 0;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--color-border);
+    padding: 16px;
+  }
+
+  .pf-preview-column .pf-profile {
+    max-width: 380px;
+  }
+
+  .pf-editor-column {
+    overflow: visible;
+    padding: 16px;
+  }
+
+  .pf-modal-head,
+  .pf-modal-foot {
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .pf-modal-foot {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pf-modal-actions {
+    justify-content: stretch;
+  }
+
+  .pf-modal-actions .ws-button {
+    flex: 1 1 auto;
+  }
+
+  .pf-public-profile {
+    max-height: calc(100vh - 20px);
+  }
+}
+
+@media (max-width: 520px) {
+  .pf-modal-backdrop {
+    padding: 0;
+  }
+
+  .pf-customization,
+  .pf-public-profile {
+    width: 100%;
+    max-height: 100vh;
+    border-right: 0;
+    border-left: 0;
+    border-radius: 0;
+  }
+
+  .pf-customization {
+    height: 100vh;
+    max-height: 100vh;
+  }
+
+  .pf-public-profile {
+    min-height: 100vh;
+    border-radius: 0;
+  }
+
+  .pf-modal-head {
+    padding: 13px 14px;
+  }
+
+  .pf-modal-title {
+    font-size: 17px;
+  }
+
+  .pf-modal-eyebrow {
+    font-size: 9px;
+  }
+
+  .pf-preview-column,
+  .pf-editor-column {
+    padding: 14px;
+  }
+
+  .pf-preview-column .pf-profile {
+    max-width: none;
+  }
+
+  .pf-choice-grid,
+  .pf-choice-grid--banners,
+  .pf-choice-grid--frames {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pf-choice-visual {
+    height: 42px;
+  }
+
+  .pf-choice-banner {
+    height: 46px;
+  }
+
+  .pf-step {
+    font-size: 11px;
+  }
+
+  .pf-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .pf-modal-actions .ws-button-primary {
+    grid-column: 1 / -1;
+  }
+
+  .pf-effect-choice {
+    gap: 9px;
+  }
+
+  .pf-effect-preview {
+    width: 34px;
+    height: 34px;
+  }
+
+  .pf-effect-desc {
+    display: none;
+  }
+
+  .pf-public-body {
+    padding: 10px;
+  }
+
+  .pf-profile-body {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .pf-banner {
+    height: 60px;
+  }
+
+  .pf-avatar--lg {
+    width: 72px;
+    height: 72px;
+  }
+
+  .pf-name {
+    font-size: 16px;
+  }
+
+  .pf-profile-head {
+    margin-top: -24px;
+  }
+}
+
+/* Mouvement réduit : les effets restent visibles, mais deviennent statiques. */
+@media (prefers-reduced-motion: reduce) {
+  .pf-effect-animated-outline::after,
+  .pf-effect-holographic::before,
+  .pf-particles,
+  .pf-spin,
+  .pf-modal-backdrop,
+  .pf-customization,
+  .pf-public-profile {
+    animation: none;
+  }
+
+  .pf-tab,
+  .pf-choice,
+  .pf-effect-choice,
+  .pf-switch,
+  .pf-switch > span,
+  .ws-profile-card {
+    transition: none;
+  }
+
+  .pf-effect-holographic::before {
+    transform: none;
+    opacity: 0.6;
+  }
+}

@@ -135,6 +135,8 @@ function CommunitiesBar({ communities, onCreateCommunity, token }) {
       <button
         className="ws-rail-item add"
         type="button"
+        aria-label="Créer une communauté"
+        data-label="Créer une communauté"
         title="Créer une communauté"
         onClick={onCreateCommunity}
       >

@@ -81,6 +81,7 @@ test("les migrations sont idempotentes et non destructives", async () => {
     "invitations",
     "notifications",
     "board_states",
+    "board_versions",
     "schema_migrations",
   ]) {
     assert.ok(names.includes(expected), `table manquante : ${expected}`);

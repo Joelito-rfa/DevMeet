@@ -109,6 +109,7 @@ function joinVoice(channelId, userId, socketId, name = null) {
   participants.set(Number(userId), {
     socketId,
     muted: false,
+    camera: false,
     joinedAt: Date.now(),
     // Pseudo du compte : affiché dans le panneau vocal sans requête supplémentaire.
     name: name || null,
@@ -126,6 +127,19 @@ function setVoiceMuted(channelId, userId, muted) {
 
   const entry = participants.get(Number(userId));
   entry.muted = Boolean(muted);
+  participants.set(Number(userId), entry);
+  return entry;
+}
+
+function setVoiceCamera(channelId, userId, camera) {
+  const participants = voiceParticipants.get(Number(channelId));
+
+  if (!participants || !participants.has(Number(userId))) {
+    return null;
+  }
+
+  const entry = participants.get(Number(userId));
+  entry.camera = Boolean(camera);
   participants.set(Number(userId), entry);
   return entry;
 }
@@ -157,6 +171,7 @@ function voiceParticipantsOf(channelId) {
     userId,
     socketId: entry.socketId,
     muted: entry.muted,
+    camera: Boolean(entry.camera),
     name: entry.name || null,
   }));
 }
@@ -293,6 +308,7 @@ module.exports = {
   userRoom,
   joinVoice,
   setVoiceMuted,
+  setVoiceCamera,
   leaveVoice,
   voiceParticipantsOf,
   voiceChannelIdsForUser,

@@ -7,106 +7,11 @@
    (classic, aurora, wave, ring) qui change les shapes animés.
    -------------------------------------------------------------------------- */
 
-/* Palette de base : le texte utilise la même famille de couleurs claires sur
+/* --- Palette de base : le texte utilise la même famille de couleurs claires sur
    tous les thèmes. L'accent du thème (--theme-accent) est injecté par
    AuthShowcase et piloté par le sélecteur. */
 
-/* Sélecteur de thème */
-
-.dm-login-theme-picker {
-  position: absolute;
-  right: 28px;
-  bottom: 24px;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  background: rgba(9, 18, 40, 0.78);
-  backdrop-filter: blur(8px);
-  border: 1px solid rgba(99, 102, 241, 0.18);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
-}
-
-.dm-login-theme-picker-label {
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.4px;
-  text-transform: uppercase;
-  color: #7f8ca8;
-}
-
-.dm-login-theme-picker-row {
-  display: flex;
-  gap: 8px;
-}
-
-.dm-login-theme-chip {
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border-radius: 50%;
-  border: 2px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  position: relative;
-  transition: border-color 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.dm-login-theme-chip:hover {
-  transform: translateY(-2px) scale(1.08);
-}
-
-.dm-login-theme-chip[aria-pressed="true"] {
-  border-color: rgba(255, 255, 255, 0.85);
-  transform: translateY(-2px) scale(1.08);
-}
-
-.dm-login-theme-swatch {
-  position: absolute;
-  inset: 2px;
-  border-radius: 50%;
-  background: var(--theme-accent);
-  box-shadow: 0 0 10px var(--theme-accent);
-}
-
-/* Indicateurs de thème actif : petit trait sous le bouton sélectionné. */
-
-.dm-login-theme-chip--neon[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(165, 180, 252, 0.4);
-}
-
-.dm-login-theme-chip--sunset[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(249, 168, 212, 0.4);
-}
-
-.dm-login-theme-chip--ocean[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(103, 232, 249, 0.4);
-}
-
-.dm-login-theme-chip--forest[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(110, 231, 183, 0.4);
-}
-
-.dm-login-theme-chip--aurora[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(192, 132, 252, 0.4);
-}
-
-.dm-login-theme-chip--ember[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(251, 191, 36, 0.4);
-}
-
-.dm-login-theme-chip--frost[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(147, 197, 253, 0.4);
-}
-
-.dm-login-theme-chip--cosmic[aria-pressed="true"] .dm-login-theme-swatch {
-  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(196, 181, 253, 0.4);
-}
-
-/* --------------------------------------------------------------------------
-   Thème par défaut (neon). Appliqué directement sur le panneau. Les
+/* --- Thème par défaut (neon). Appliqué directement sur le panneau. Les
    signatures colorées des couches animées respectent la palette, sans toucher
    aux zones de saisie ni aux boutons.
    -------------------------------------------------------------------------- */
@@ -1049,40 +954,86 @@
   box-shadow: 0 0 12px var(--theme-accent);
 }
 
-/* Adaptations mobiles du sélecteur. */
+/* --------------------------------------------------------------------------
+   Thème BADASS : dark premium violet électrique, anneaux orbitaux.
+   Gratuit sur tous les comptes, aligné sur la palette des paramètres.
+   -------------------------------------------------------------------------- */
 
-@media (max-width: 640px) {
-  .dm-login-theme-picker {
-    right: 12px;
-    bottom: 14px;
-    padding: 7px 10px;
-    gap: 9px;
-  }
-
-  .dm-login-theme-picker-label {
-    display: none;
-  }
-
-  .dm-login-theme-chip {
-    width: 24px;
-    height: 24px;
-  }
-
-  .dm-login-theme-picker-row {
-    gap: 6px;
-  }
+.dm-login-intro--badass {
+  --theme-accent: #c77dff;
+  --theme-accent-strong: #9d4edd;
+  --theme-text: #f5f3ff;
+  --theme-sub: #a6a1b8;
+  --aurora-border: rgba(157, 78, 221, 0.32);
+  --aurora-tint: rgba(255, 60, 172, 0.05);
+  --grid-color: rgba(199, 125, 255, 0.09);
+  --spark-color: #c77dff;
+  --spark-glow: rgba(199, 125, 255, 0.88);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .dm-login-theme-chip {
-    transition: border-color 0.25s ease;
-  }
+.dm-login-intro--badass .dm-login-aurora {
+  --aurora-1-color: rgba(157, 78, 221, 0.26);
+  --aurora-2-color: rgba(255, 60, 172, 0.16);
+  --aurora-3-color: rgba(199, 125, 255, 0.12);
+  --aurora-4-color: rgba(123, 47, 247, 0.18);
+}
 
-  .dm-login-theme-chip:hover {
-    transform: none;
-  }
+.dm-login-intro--badass .dm-login-sheen {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(210, 195, 255, 0.07) 34%,
+    rgba(255, 220, 245, 0.12) 50%,
+    rgba(199, 125, 255, 0.07) 66%,
+    transparent 100%
+  );
+  animation-direction: reverse;
+}
 
-  .dm-login-theme-chip[aria-pressed="true"] {
-    transform: none;
-  }
+.dm-login-intro--badass .dm-login-grid {
+  --grid-color: rgba(199, 125, 255, 0.09);
+}
+
+.dm-login-intro--badass .dm-login-sparkles {
+  --spark-color: #c77dff;
+  --spark-glow: rgba(199, 125, 255, 0.88);
+}
+
+.dm-login-intro--badass .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(157, 78, 221, 0) 0deg,
+    rgba(199, 125, 255, 0.8) 34deg,
+    rgba(255, 60, 172, 0.45) 64deg,
+    rgba(123, 47, 247, 0) 110deg,
+    rgba(123, 47, 247, 0) 238deg,
+    rgba(157, 78, 221, 0.55) 288deg,
+    rgba(157, 78, 221, 0) 332deg
+  );
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--badass .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(210, 195, 255, 0.80) 45%,
+    rgba(255, 60, 172, 0.55) 55%,
+    transparent
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--badass .dm-login-art--ring {
+  --art-glow: rgba(157, 78, 221, 0.24);
+}
+
+.dm-login-intro--badass .dm-login-art--ring::before {
+  background: radial-gradient(circle, rgba(157, 78, 221, 0.24), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--badass .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
 }

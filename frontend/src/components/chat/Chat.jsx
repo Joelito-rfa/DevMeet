@@ -938,13 +938,13 @@ function Chat({
           .devmeet-chat {
             width: 100%;
             height: calc(100vh - 185px);
-            min-height: 500px;
+            min-height: 520px;
             display: grid;
-            grid-template-columns: minmax(0, 1fr) 250px;
+            grid-template-columns: minmax(0, 1fr) 282px;
             overflow: hidden;
-            border: 1px solid #30363d;
+            border: 1px solid var(--color-border);
             border-radius: 10px;
-            background: #0d1117;
+            background: var(--color-app-bg);
           }
 
           .devmeet-chat-center {
@@ -953,17 +953,17 @@ function Chat({
             min-height: 0;
             display: flex;
             flex-direction: column;
-            background: #161b22;
+            background: var(--color-content-bg);
           }
 
           .devmeet-chat-header {
-            min-height: 62px;
-            padding: 0 16px;
+            min-height: 72px;
+            padding: 0 18px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            border-bottom: 1px solid #30363d;
+            border-bottom: 1px solid var(--color-border);
           }
 
           .devmeet-chat-header-left {
@@ -972,16 +972,16 @@ function Chat({
 
           .devmeet-chat-header-title {
             margin: 0;
-            color: #f0f6fc;
-            font-size: 13px;
+            color: var(--color-text-primary);
+            font-size: 16px;
             font-weight: 650;
             letter-spacing: -0.2px;
           }
 
           .devmeet-chat-header-subtitle {
             margin: 4px 0 0;
-            color: #8b949e;
-            font-size: 9px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
           }
 
           .devmeet-chat-header-actions {
@@ -991,39 +991,39 @@ function Chat({
           }
 
           .devmeet-chat-icon-button {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #30363d;
+            border: 1px solid var(--color-border);
             border-radius: 7px;
-            background: #161b22;
-            color: #8b949e;
+            background: var(--color-panel-bg);
+            color: var(--color-text-secondary);
             cursor: pointer;
-            font-size: 11px;
+            font-size: 14px;
           }
 
           .devmeet-chat-icon-button:hover {
-            border-color: #5865f2;
-            background: rgba(88,101,242,0.08);
-            color: #f0f6fc;
+            border-color: var(--color-primary);
+            background: rgba(var(--color-primary-rgb), 0.08);
+            color: var(--color-text-primary);
           }
 
           .devmeet-chat-icon-button.active {
-            border-color: #5865f2;
-            background: rgba(88,101,242, 0.16);
-            color: #f0f6fc;
+            border-color: var(--color-primary);
+            background: rgba(var(--color-primary-rgb), 0.16);
+            color: var(--color-text-primary);
           }
 
           .devmeet-chat-messages {
             flex: 1;
             min-height: 0;
-            padding: 20px 18px;
+            padding: 22px 20px;
             overflow-y: auto;
             background:
-              radial-gradient(circle at 20% 0%, rgba(88,101,242,0.05), transparent 28%),
-              #161b22;
+              radial-gradient(circle at 20% 0%, rgba(var(--color-primary-rgb), 0.05), transparent 28%),
+              var(--color-content-bg);
           }
 
           .devmeet-chat-empty {
@@ -1031,14 +1031,14 @@ function Chat({
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #8b949e;
-            font-size: 11px;
+            color: var(--color-text-secondary);
+            font-size: 14px;
           }
 
           .devmeet-message-row {
             width: 100%;
             display: flex;
-            margin-bottom: 17px;
+            margin-bottom: 20px;
           }
 
           .devmeet-message-row.received {
@@ -1050,15 +1050,15 @@ function Chat({
           }
 
           .devmeet-message-block {
-            max-width: min(72%, 520px);
+            max-width: min(74%, 560px);
           }
 
           .devmeet-message-meta {
             display: flex;
             align-items: center;
-            gap: 7px;
-            margin-bottom: 5px;
-            font-size: 8px;
+            gap: 8px;
+            margin-bottom: 7px;
+            font-size: 12.5px;
           }
 
           .devmeet-message-row.received .devmeet-message-meta {
@@ -1070,71 +1070,71 @@ function Chat({
           }
 
           .devmeet-message-author {
-            color: #8b949e;
+            color: var(--color-text-secondary);
             font-weight: 600;
           }
 
           .devmeet-message-time {
-            color: #8b949e;
+            color: var(--color-text-secondary);
           }
 
           .devmeet-bubble {
-            padding: 10px 12px;
-            border-radius: 10px;
-            font-size: 11px;
-            line-height: 1.5;
+            padding: 13px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            line-height: 1.6;
             word-break: break-word;
           }
 
           .devmeet-message-row.received .devmeet-bubble {
-            color: #b0bac6;
-            background: #2d333b;
-            border: 1px solid #30363d;
+            color: var(--color-text-muted);
+            background: var(--color-hover);
+            border: 1px solid var(--color-border);
             border-top-left-radius: 4px;
           }
 
           .devmeet-message-row.sent .devmeet-bubble {
-            color: #f0f6fc;
+            color: var(--color-text-primary);
             background: linear-gradient(
               135deg,
-              #4752c4,
-              #4752c4
+              var(--color-primary-hover),
+              var(--color-primary-hover)
             );
-            border: 1px solid #4752c4;
+            border: 1px solid var(--color-primary-hover);
             border-top-right-radius: 4px;
           }
 
           .devmeet-message-status {
-            margin-top: 4px;
+            margin-top: 6px;
             text-align: right;
-            color: #8b949e;
-            font-size: 8px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
           }
 
           .devmeet-message-row.sent .devmeet-message-status {
-            color: #7985ff;
+            color: var(--color-accent-bright);
           }
 
           .devmeet-typing {
-            min-height: 21px;
-            padding: 0 17px 5px;
-            color: #8b949e;
-            font-size: 9px;
+            min-height: 26px;
+            padding: 0 18px 8px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
             font-style: italic;
           }
 
           .devmeet-composer {
-            padding: 11px;
-            border-top: 1px solid #30363d;
-            background: #161b22;
+            padding: 14px;
+            border-top: 1px solid var(--color-border);
+            background: var(--color-panel-bg);
           }
 
           .devmeet-composer-readonly {
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #8b949e;
-            font-size: 11px;
+            color: var(--color-text-secondary);
+            font-size: 14px;
             font-style: italic;
           }
 
@@ -1142,16 +1142,16 @@ function Chat({
             min-width: 0;
             display: flex;
             align-items: center;
-            gap: 4px;
-            padding: 5px 6px;
-            border: 1px solid #30363d;
-            border-radius: 9px;
-            background: #161b22;
+            gap: 6px;
+            padding: 7px 8px;
+            border: 1px solid var(--color-border);
+            border-radius: 11px;
+            background: var(--color-panel-bg);
           }
 
           .devmeet-composer-tool {
-            width: 30px;
-            height: 30px;
+            width: 36px;
+            height: 36px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -1159,35 +1159,35 @@ function Chat({
             border: none;
             border-radius: 7px;
             background: transparent;
-            color: #8b949e;
+            color: var(--color-text-secondary);
             cursor: pointer;
-            font-size: 12px;
+            font-size: 15px;
           }
 
           .devmeet-composer-tool:hover {
-            background: rgba(88,101,242,0.1);
-            color: #f0f6fc;
+            background: rgba(var(--color-primary-rgb), 0.1);
+            color: var(--color-text-primary);
           }
 
           .devmeet-composer-input {
             flex: 1;
             min-width: 0;
-            height: 32px;
-            padding: 0 7px;
+            height: 42px;
+            padding: 0 9px;
             border: none;
             outline: none;
             background: transparent;
-            color: #f0f6fc;
-            font-size: 11px;
+            color: var(--color-text-primary);
+            font-size: 15px;
           }
 
           .devmeet-composer-input::placeholder {
-            color: #56647d;
+            color: var(--color-text-muted);
           }
 
           .devmeet-send {
-            width: 32px;
-            height: 32px;
+            width: 42px;
+            height: 42px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -1196,55 +1196,55 @@ function Chat({
             border-radius: 7px;
             background: linear-gradient(
               135deg,
-              #5865f2,
-              #5865f2
+              var(--color-primary),
+              var(--color-primary)
             );
-            color: #f0f6fc;
+            color: var(--color-text-primary);
             cursor: pointer;
-            font-size: 12px;
+            font-size: 15px;
           }
 
           .devmeet-chat-right {
             min-width: 0;
             display: flex;
             flex-direction: column;
-            background: #161b22;
-            border-left: 1px solid #30363d;
+            background: var(--color-panel-bg);
+            border-left: 1px solid var(--color-border);
             overflow-y: auto;
           }
 
           .devmeet-right-section {
-            padding: 15px;
-            border-bottom: 1px solid #30363d;
+            padding: 18px;
+            border-bottom: 1px solid var(--color-border);
           }
 
           .devmeet-right-title {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 12px;
-            color: #f0f6fc;
-            font-size: 11px;
+            margin-bottom: 14px;
+            color: var(--color-text-primary);
+            font-size: 14px;
             font-weight: 600;
           }
 
           .devmeet-right-count {
-            color: #8b949e;
-            font-size: 9px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
             font-weight: 400;
           }
 
           .devmeet-members {
             display: flex;
             flex-direction: column;
-            gap: 7px;
+            gap: 8px;
           }
 
           .devmeet-member {
             display: flex;
             align-items: center;
-            gap: 9px;
-            padding: 7px;
+            gap: 10px;
+            padding: 9px;
             border-radius: 7px;
           }
 
@@ -1254,8 +1254,8 @@ function Chat({
 
           .devmeet-member-avatar {
             position: relative;
-            width: 29px;
-            height: 29px;
+            width: 34px;
+            height: 34px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -1263,11 +1263,11 @@ function Chat({
             border-radius: 50%;
             background: linear-gradient(
               135deg,
-              #7985ff,
-              #7985ff
+              var(--color-accent-bright),
+              var(--color-accent-bright)
             );
-            color: #f0f6fc;
-            font-size: 8px;
+            color: var(--color-text-primary);
+            font-size: 11px;
             font-weight: 700;
           }
 
@@ -1276,11 +1276,11 @@ function Chat({
             position: absolute;
             right: -1px;
             bottom: -1px;
-            width: 7px;
-            height: 7px;
-            border: 2px solid #161b22;
+            width: 8px;
+            height: 8px;
+            border: 2px solid var(--color-panel-bg);
             border-radius: 50%;
-            background: #3fb950;
+            background: var(--color-success);
           }
 
           .devmeet-member-info {
@@ -1291,14 +1291,14 @@ function Chat({
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            color: #b0bac6;
-            font-size: 9px;
+            color: var(--color-text-muted);
+            font-size: 14px;
           }
 
           .devmeet-member-status {
             margin-top: 2px;
-            color: #3fb950;
-            font-size: 8px;
+            color: var(--color-success);
+            font-size: 12px;
           }
 
           .devmeet-activities {
@@ -1314,34 +1314,34 @@ function Chat({
           }
 
           .devmeet-activity-icon {
-            width: 25px;
-            height: 25px;
+            width: 30px;
+            height: 30px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             border-radius: 7px;
-            background: rgba(88,101,242,0.11);
-            border: 1px solid rgba(88,101,242,0.15);
-            color: #7985ff;
-            font-size: 9px;
+            background: rgba(var(--color-primary-rgb), 0.11);
+            border: 1px solid rgba(var(--color-primary-rgb), 0.15);
+            color: var(--color-accent-bright);
+            font-size: 12px;
           }
 
           .devmeet-activity-text {
-            color: #8b949e;
-            font-size: 8px;
+            color: var(--color-text-secondary);
+            font-size: 12.5px;
             line-height: 1.45;
           }
 
           .devmeet-activity-time {
             margin-top: 2px;
-            color: #4f5d76;
-            font-size: 7px;
+            color: var(--color-text-secondary);
+            font-size: 11px;
           }
 
           .devmeet-no-data {
-            color: #56647d;
-            font-size: 8px;
+            color: var(--color-text-muted);
+            font-size: 12.5px;
             line-height: 1.5;
           }
 
@@ -1352,34 +1352,34 @@ function Chat({
           .devmeet-attachments {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            margin-top: 7px;
+            gap: 8px;
+            margin-top: 9px;
           }
 
           .devmeet-attachment {
             display: flex;
             align-items: center;
-            gap: 7px;
+            gap: 9px;
             max-width: 100%;
-            padding: 7px 9px;
-            border: 1px solid #30363d;
-            border-radius: 8px;
-            background: #161b22;
-            color: #b0bac6;
-            font-size: 10px;
+            padding: 9px 11px;
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            background: var(--color-panel-bg);
+            color: var(--color-text-muted);
+            font-size: 13px;
             text-align: left;
             cursor: pointer;
           }
 
           .devmeet-message-row.sent .devmeet-attachment {
-            border-color: #4752c4;
-            background: rgba(9, 16, 36, 0.55);
-            color: #f0f6fc;
+            border-color: var(--color-primary-hover);
+            background: rgba(var(--color-app-bg-rgb), 0.55);
+            color: var(--color-text-primary);
           }
 
           .devmeet-attachment:hover {
-            border-color: #5865f2;
-            color: #f0f6fc;
+            border-color: var(--color-primary);
+            color: var(--color-text-primary);
           }
 
           .devmeet-attachment-name {
@@ -1392,26 +1392,26 @@ function Chat({
 
           .devmeet-attachment-size {
             flex-shrink: 0;
-            color: #8b949e;
-            font-size: 9px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
           }
 
           .devmeet-pending-file {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            padding: 7px 9px;
-            border: 1px dashed #30363d;
-            border-radius: 8px;
-            background: rgba(88,101,242,0.07);
-            color: #b0bac6;
-            font-size: 10px;
+            gap: 9px;
+            margin-bottom: 10px;
+            padding: 9px 11px;
+            border: 1px dashed var(--color-border);
+            border-radius: 10px;
+            background: rgba(var(--color-primary-rgb), 0.07);
+            color: var(--color-text-muted);
+            font-size: 13px;
           }
 
           .devmeet-pending-remove {
-            width: 22px;
-            height: 22px;
+            width: 28px;
+            height: 28px;
             flex-shrink: 0;
             display: flex;
             align-items: center;
@@ -1419,39 +1419,39 @@ function Chat({
             border: none;
             border-radius: 6px;
             background: transparent;
-            color: #8b949e;
+            color: var(--color-text-secondary);
             cursor: pointer;
           }
 
           .devmeet-pending-remove:hover {
             background: rgba(255,255,255,0.06);
-            color: #f0f6fc;
+            color: var(--color-text-primary);
           }
 
           .devmeet-upload-error {
-            margin-bottom: 8px;
-            padding: 7px 9px;
-            border: 1px solid #5a2a2d;
-            border-radius: 8px;
-            background: #2a1c1f;
-            color: #f85149;
-            font-size: 10px;
+            margin-bottom: 10px;
+            padding: 9px 11px;
+            border: 1px solid var(--color-error-soft);
+            border-radius: 10px;
+            background: var(--color-error-deep);
+            color: var(--color-error);
+            font-size: 13px;
           }
 
           .devmeet-action-error {
-            margin-bottom: 10px;
-            padding: 8px 10px;
-            border: 1px solid #5a2a2d;
-            border-radius: 8px;
-            background: #2a1c1f;
-            color: #f85149;
-            font-size: 10px;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--color-error-soft);
+            border-radius: 10px;
+            background: var(--color-error-deep);
+            color: var(--color-error);
+            font-size: 13px;
           }
 
           .devmeet-bubble.deleted {
             border-style: dashed;
             background: transparent;
-            color: #8b949e;
+            color: var(--color-text-secondary);
             font-style: italic;
           }
 
@@ -1459,48 +1459,47 @@ function Chat({
             display: flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 6px;
-            margin-top: 6px;
+            gap: 8px;
+            margin-top: 8px;
           }
 
           .devmeet-message-delete {
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             border: 1px solid transparent;
             border-radius: 7px;
             background: transparent;
-            color: #8b949e;
+            color: var(--color-text-secondary);
             cursor: pointer;
             opacity: 0.75;
           }
 
           .devmeet-message-delete:hover {
-            border-color: #5a2a2d;
-            background: #2a1c1f;
-            color: #f85149;
+            border-color: var(--color-error-soft);
+            background: var(--color-error-deep);
+            color: var(--color-error);
             opacity: 1;
           }
 
           .devmeet-confirm-label {
-            color: #8b949e;
-            font-size: 10px;
+            color: var(--color-text-secondary);
+            font-size: 13px;
           }
 
-          .devmeet-confirm-yes,
-          .devmeet-confirm-no {
-            padding: 4px 9px;
-            border-radius: 7px;
-            font-size: 10px;
+          .devmeet-confirm-yes, .devmeet-confirm-no {
+            padding: 6px 12px;
+            border-radius: 9px;
+            font-size: 13px;
             cursor: pointer;
           }
 
           .devmeet-confirm-yes {
-            border: 1px solid #5a2a2d;
-            background: #332124;
-            color: #f85149;
+            border: 1px solid var(--color-error-soft);
+            background: var(--color-error-deep);
+            color: var(--color-error);
           }
 
           .devmeet-confirm-yes:disabled {
@@ -1509,9 +1508,9 @@ function Chat({
           }
 
           .devmeet-confirm-no {
-            border: 1px solid #30363d;
+            border: 1px solid var(--color-border);
             background: transparent;
-            color: #8b949e;
+            color: var(--color-text-secondary);
           }
 
           .devmeet-spin {
@@ -1527,21 +1526,21 @@ function Chat({
           /* --- Messagerie avancée (jalon 5) --- */
 
           .devmeet-mention {
-            color: #7985ff;
+            color: var(--color-accent-bright);
             font-weight: 650;
           }
 
           .devmeet-message-row.mentioned .devmeet-bubble {
-            border-color: #7985ff;
-            box-shadow: 0 0 0 1px rgba(88,101,242, 0.35);
+            border-color: var(--color-accent-bright);
+            box-shadow: 0 0 0 1px rgba(var(--color-primary-rgb), 0.35);
           }
 
           .devmeet-message-toolbar {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
-            gap: 4px;
-            margin-top: 6px;
+            gap: 6px;
+            margin-top: 8px;
           }
 
           .devmeet-message-row.sent .devmeet-message-toolbar {
@@ -1552,79 +1551,79 @@ function Chat({
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            height: 24px;
-            padding: 0 8px;
-            border: 1px solid #30363d;
+            height: 30px;
+            padding: 0 10px;
+            border: 1px solid var(--color-border);
             border-radius: 7px;
-            background: #161b22;
-            color: #8b949e;
-            font-size: 9px;
+            background: var(--color-panel-bg);
+            color: var(--color-text-secondary);
+            font-size: 13px;
             cursor: pointer;
           }
 
           .devmeet-tool:hover {
-            border-color: #5865f2;
-            color: #f0f6fc;
+            border-color: var(--color-primary);
+            color: var(--color-text-primary);
           }
 
           .devmeet-tool.active {
-            border-color: #5865f2;
-            background: rgba(88,101,242, 0.16);
-            color: #f0f6fc;
+            border-color: var(--color-primary);
+            background: rgba(var(--color-primary-rgb), 0.16);
+            color: var(--color-text-primary);
           }
 
           .devmeet-reactions {
             display: flex;
             flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 6px;
+            gap: 6px;
+            margin-top: 8px;
           }
 
           .devmeet-reaction {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-            padding: 3px 8px;
-            border: 1px solid #30363d;
+            gap: 5px;
+            padding: 4px 10px;
+            border: 1px solid var(--color-border);
             border-radius: 999px;
-            background: #161b22;
-            color: #b0bac6;
-            font-size: 10px;
+            background: var(--color-panel-bg);
+            color: var(--color-text-muted);
+            font-size: 13px;
             cursor: pointer;
           }
 
           .devmeet-reaction.mine {
-            border-color: #5865f2;
-            background: rgba(88,101,242, 0.18);
-            color: #f0f6fc;
+            border-color: var(--color-primary);
+            background: rgba(var(--color-primary-rgb), 0.18);
+            color: var(--color-text-primary);
           }
 
           .devmeet-reaction:hover {
-            border-color: #5865f2;
+            border-color: var(--color-primary);
           }
 
           .devmeet-emoji-picker {
             display: flex;
             flex-wrap: wrap;
-            gap: 3px;
-            max-width: 224px;
+            gap: 4px;
+            max-width: 252px;
             margin-top: 6px;
-            padding: 6px;
-            border: 1px solid #30363d;
+            padding: 7px;
+            border: 1px solid var(--color-border);
             border-radius: 9px;
-            background: #161b22;
+            background: var(--color-panel-bg);
           }
 
           .devmeet-emoji-option {
-            width: 26px;
-            height: 26px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
             border: none;
             border-radius: 6px;
             background: transparent;
-            font-size: 14px;
+            font-size: 17px;
             line-height: 1;
             cursor: pointer;
           }
@@ -1635,66 +1634,66 @@ function Chat({
 
           .devmeet-panel {
             position: absolute;
-            top: 62px;
+            top: 72px;
             right: 0;
             bottom: 0;
-            width: min(360px, 94%);
+            width: min(404px, 96%);
             display: flex;
             flex-direction: column;
-            border-left: 1px solid #30363d;
-            background: #161b22;
+            border-left: 1px solid var(--color-border);
+            background: var(--color-panel-bg);
             box-shadow: -18px 0 30px rgba(0, 0, 0, 0.35);
             z-index: 6;
           }
 
           .devmeet-panel-header {
-            min-height: 46px;
-            padding: 0 12px;
+            min-height: 54px;
+            padding: 0 16px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 8px;
-            border-bottom: 1px solid #30363d;
+            border-bottom: 1px solid var(--color-border);
           }
 
           .devmeet-panel-title {
             margin: 0;
-            color: #f0f6fc;
-            font-size: 11px;
+            color: var(--color-text-primary);
+            font-size: 14px;
             font-weight: 650;
           }
 
           .devmeet-panel-close {
-            width: 26px;
-            height: 26px;
+            width: 32px;
+            height: 32px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid #30363d;
+            border: 1px solid var(--color-border);
             border-radius: 7px;
-            background: #161b22;
-            color: #8b949e;
+            background: var(--color-panel-bg);
+            color: var(--color-text-secondary);
             cursor: pointer;
           }
 
           .devmeet-panel-close:hover {
-            border-color: #5865f2;
-            color: #f0f6fc;
+            border-color: var(--color-primary);
+            color: var(--color-text-primary);
           }
 
           .devmeet-panel-body {
             flex: 1;
             min-height: 0;
             overflow-y: auto;
-            padding: 12px;
+            padding: 14px;
           }
 
           .devmeet-panel-item {
-            margin-bottom: 8px;
-            padding: 9px 10px;
-            border: 1px solid #30363d;
-            border-radius: 9px;
-            background: #161b22;
+            margin-bottom: 10px;
+            padding: 11px 13px;
+            border: 1px solid var(--color-border);
+            border-radius: 11px;
+            background: var(--color-panel-bg);
           }
 
           .devmeet-panel-item-head {
@@ -1703,52 +1702,52 @@ function Chat({
             justify-content: space-between;
             gap: 8px;
             margin-bottom: 5px;
-            color: #8b949e;
-            font-size: 9px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
           }
 
           .devmeet-panel-item-text {
-            color: #b0bac6;
-            font-size: 10px;
+            color: var(--color-text-muted);
+            font-size: 13px;
             line-height: 1.5;
             word-break: break-word;
           }
 
           .devmeet-panel-empty {
             padding: 18px 6px;
-            color: #8b949e;
-            font-size: 10px;
+            color: var(--color-text-secondary);
+            font-size: 13px;
             text-align: center;
           }
 
           .devmeet-search-form {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            padding: 12px;
-            border-bottom: 1px solid #30363d;
+            gap: 8px;
+            padding: 14px;
+            border-bottom: 1px solid var(--color-border);
           }
 
           .devmeet-search-row {
             display: flex;
-            gap: 6px;
+            gap: 8px;
           }
 
           .devmeet-search-input {
             flex: 1;
             min-width: 0;
-            height: 30px;
-            padding: 0 9px;
-            border: 1px solid #30363d;
-            border-radius: 7px;
-            background: #161b22;
-            color: #f0f6fc;
-            font-size: 11px;
+            height: 40px;
+            padding: 0 11px;
+            border: 1px solid var(--color-border);
+            border-radius: 9px;
+            background: var(--color-panel-bg);
+            color: var(--color-text-primary);
+            font-size: 14px;
           }
 
           .devmeet-search-input:focus {
             outline: none;
-            border-color: #5865f2;
+            border-color: var(--color-primary);
           }
 
           .devmeet-search-scopes {
@@ -1757,13 +1756,13 @@ function Chat({
           }
 
           .devmeet-search-submit {
-            height: 30px;
-            padding: 0 11px;
-            border: 1px solid #5865f2;
-            border-radius: 7px;
-            background: rgba(88,101,242, 0.18);
-            color: #f0f6fc;
-            font-size: 10px;
+            height: 40px;
+            padding: 0 14px;
+            border: 1px solid var(--color-primary);
+            border-radius: 9px;
+            background: rgba(var(--color-primary-rgb), 0.18);
+            color: var(--color-text-primary);
+            font-size: 13px;
             cursor: pointer;
           }
 
@@ -1773,8 +1772,8 @@ function Chat({
           }
 
           .devmeet-panel-hint {
-            color: #8b949e;
-            font-size: 9px;
+            color: var(--color-text-secondary);
+            font-size: 12px;
           }
 
           .devmeet-thread-reply {
@@ -1789,12 +1788,12 @@ function Chat({
             position: absolute;
             bottom: calc(100% + 6px);
             left: 0;
-            min-width: 200px;
-            max-width: 260px;
-            padding: 5px;
-            border: 1px solid #30363d;
-            border-radius: 9px;
-            background: #161b22;
+            min-width: 228px;
+            max-width: 310px;
+            padding: 6px;
+            border: 1px solid var(--color-border);
+            border-radius: 11px;
+            background: var(--color-panel-bg);
             box-shadow: 0 12px 26px rgba(0, 0, 0, 0.4);
             z-index: 8;
           }
@@ -1802,26 +1801,26 @@ function Chat({
           .devmeet-mention-option {
             display: block;
             width: 100%;
-            padding: 6px 8px;
+            padding: 8px 10px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             background: transparent;
-            color: #b0bac6;
-            font-size: 10px;
+            color: var(--color-text-muted);
+            font-size: 13px;
             text-align: left;
             cursor: pointer;
           }
 
           .devmeet-mention-option:hover {
-            background: rgba(88,101,242, 0.15);
-            color: #f0f6fc;
+            background: rgba(var(--color-primary-rgb), 0.15);
+            color: var(--color-text-primary);
           }
 
           .devmeet-thread-form {
             display: flex;
-            gap: 6px;
-            padding: 10px 12px;
-            border-top: 1px solid #30363d;
+            gap: 8px;
+            padding: 12px 14px;
+            border-top: 1px solid var(--color-border);
           }
 
           @media (max-width: 820px) {
@@ -1893,7 +1892,7 @@ function Chat({
                 setSearchOpen((value) => !value);
               }}
             >
-              <Search size={13} />
+              <Search size={15} />
             </button>
 
             <button
@@ -1908,7 +1907,7 @@ function Chat({
                 await togglePinnedPanel();
               }}
             >
-              <Pin size={13} />
+              <Pin size={15} />
             </button>
           </div>
         </header>
@@ -1987,7 +1986,7 @@ function Chat({
                               title="Ouvrir le fichier"
                               onClick={() => openAttachment(attachment)}
                             >
-                              <Paperclip size={12} />
+                              <Paperclip size={14} />
                               <span className="devmeet-attachment-name">
                                 {attachment.fileName}
                               </span>
@@ -2057,7 +2056,7 @@ function Chat({
                                 )
                               }
                             >
-                              <Smile size={11} />
+                              <Smile size={13} />
                             </button>
                           ) : null}
 
@@ -2067,7 +2066,7 @@ function Chat({
                             title="Répondre dans un fil"
                             onClick={() => openThread(item)}
                           >
-                            <MessagesSquare size={11} />
+                            <MessagesSquare size={13} />
 
                             {item.replyCount > 0
                               ? ` ${item.replyCount}`
@@ -2088,9 +2087,9 @@ function Chat({
                               onClick={() => togglePin(item)}
                             >
                               {item.pinned ? (
-                                <PinOff size={11} />
+                                <PinOff size={13} />
                               ) : (
-                                <Pin size={11} />
+                                <Pin size={13} />
                               )}
                             </button>
                           ) : null}
@@ -2166,7 +2165,7 @@ function Chat({
                               }
                               onClick={() => setConfirmingId(item.id)}
                             >
-                              <Trash2 size={12} />
+                              <Trash2 size={14} />
                             </button>
                           )}
                         </div>
@@ -2198,7 +2197,7 @@ function Chat({
 
         {readOnly ? (
           <div className="devmeet-composer devmeet-composer-readonly">
-            <Lock size={13} style={{ color: "#8b949e", flexShrink: 0 }} />
+            <Lock size={15} style={{ color: "var(--color-text-secondary)", flexShrink: 0 }} />
             <span>{readOnlyNotice}</span>
           </div>
         ) : (
@@ -2212,7 +2211,7 @@ function Chat({
 
           {pendingFile ? (
             <div className="devmeet-pending-file">
-              <Paperclip size={12} />
+              <Paperclip size={14} />
 
               <span className="devmeet-attachment-name">
                 {pendingFile.fileName}
@@ -2228,7 +2227,7 @@ function Chat({
                 title="Retirer le fichier"
                 onClick={() => setPendingFile(null)}
               >
-                <X size={12} />
+                <X size={14} />
               </button>
             </div>
           ) : null}
@@ -2242,9 +2241,9 @@ function Chat({
               disabled={uploading}
             >
               {uploading ? (
-                <LoaderCircle size={13} className="devmeet-spin" />
+                <LoaderCircle size={15} className="devmeet-spin" />
               ) : (
-                <Paperclip size={13} />
+                <Paperclip size={15} />
               )}
             </button>
 
@@ -2255,7 +2254,7 @@ function Chat({
               onClick={handleFileClick}
               disabled={uploading}
             >
-              <Image size={13} />
+              <Image size={15} />
             </button>
 
             <input
@@ -2303,7 +2302,7 @@ function Chat({
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
             >
-              <Send size={14} />
+              <Send size={16} />
             </motion.button>
           </div>
         </form>
@@ -2326,7 +2325,7 @@ function Chat({
                 title="Fermer la recherche"
                 onClick={() => setSearchOpen(false)}
               >
-                <X size={13} />
+                <X size={15} />
               </button>
             </div>
 
@@ -2425,7 +2424,7 @@ function Chat({
                 title="Fermer"
                 onClick={() => setPinnedOpen(false)}
               >
-                <X size={13} />
+                <X size={15} />
               </button>
             </div>
 
@@ -2454,7 +2453,7 @@ function Chat({
                           title="Détacher ce message"
                           onClick={() => togglePin(item)}
                         >
-                          <PinOff size={11} />
+                          <PinOff size={13} />
                         </button>
                       ) : (
                         <span>{formatTime(item.createdAt)}</span>
@@ -2490,7 +2489,7 @@ function Chat({
                 title="Fermer le fil"
                 onClick={closeThread}
               >
-                <X size={13} />
+                <X size={15} />
               </button>
             </div>
 

@@ -5,6 +5,22 @@
  * caractères pour ne jamais perdre de précision côté JavaScript.
  */
 
+const { parseEffects } = require("./profileCustomization");
+
+/**
+ * Décorations visuelles communes à tous les profils. Le préfixe permet de
+ * réutiliser la même projection dans les jointures (`author_` pour un auteur
+ * de message, par exemple).
+ */
+function decorationFields(row, prefix = "") {
+  return {
+    profileBackground: row[`${prefix}profile_background`] || null,
+    profileBanner: row[`${prefix}profile_banner`] || null,
+    avatarFrame: row[`${prefix}avatar_frame`] || null,
+    profileEffects: parseEffects(row[`${prefix}profile_effects`]),
+  };
+}
+
 function toIso(value) {
   if (!value) {
     return null;
@@ -38,6 +54,27 @@ function publicUser(row) {
     theme: row.theme || "dark",
     createdAt: toIso(row.created_at),
     lastSeenAt: toIso(row.last_seen_at),
+    ...decorationFields(row),
+  };
+}
+
+/**
+ * Profil public : les autres membres peuvent voir l'identité, la bio et les
+ * décorations, mais jamais l'email, le thème ou une donnée de session.
+ */
+function profileDto(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: Number(row.id),
+    name: row.name,
+    avatarUrl: row.avatar_url || null,
+    bio: row.bio || null,
+    status: row.status || "offline",
+    createdAt: toIso(row.created_at),
+    ...decorationFields(row),
   };
 }
 
@@ -54,6 +91,7 @@ function authorSummary(row, prefix = "author_") {
     name: row[`${prefix}name`] || "Utilisateur supprimé",
     avatarUrl: row[`${prefix}avatar_url`] || null,
     status: row[`${prefix}status`] || "offline",
+    ...decorationFields(row, prefix),
   };
 }
 
@@ -174,6 +212,7 @@ function legacyMessageDto(row, extra = {}) {
     senderId: authorId,
     userName: row.author_name || "Utilisateur supprimé",
     avatarUrl: row.author_avatar_url || null,
+    ...decorationFields(row, "author_"),
     message: row.deleted_at ? "Message supprimé" : row.content,
     deleted: Boolean(row.deleted_at),
     replyToId: row.reply_to_id ? String(row.reply_to_id) : null,
@@ -206,6 +245,7 @@ function memberDto(row, extra = {}) {
     email: row.email,
     avatarUrl: row.avatar_url || null,
     status: row.status || "offline",
+    ...decorationFields(row),
     // Rôle complet (objet) ET sa clé système pour les comparaisons legacies.
     role,
     roleKey: role ? role.key : null,
@@ -334,6 +374,7 @@ function dmConversationDto(row, extra = {}) {
       name: otherName || "Utilisateur supprimé",
       avatarUrl: otherAvatar || null,
       status: otherStatus || "offline",
+      ...decorationFields(row, viewerIsA ? "b_" : "a_"),
     },
     lastMessage: row.last_message_id
       ? {
@@ -365,7 +406,9 @@ function dmConversationDto(row, extra = {}) {
 module.exports = {
   toIso,
   toBoolean,
+  decorationFields,
   publicUser,
+  profileDto,
   authorSummary,
   communityDto,
   categoryDto,

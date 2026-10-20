@@ -153,6 +153,28 @@ async function updateProfile(userId, patch) {
     values.push(patch.status);
   }
 
+  if (patch.profileBackground !== undefined) {
+    fields.push("profile_background = ?");
+    values.push(patch.profileBackground);
+  }
+
+  if (patch.profileBanner !== undefined) {
+    fields.push("profile_banner = ?");
+    values.push(patch.profileBanner);
+  }
+
+  if (patch.avatarFrame !== undefined) {
+    fields.push("avatar_frame = ?");
+    values.push(patch.avatarFrame);
+  }
+
+  if (patch.profileEffects !== undefined) {
+    fields.push("profile_effects = ?");
+    values.push(
+      patch.profileEffects === null ? null : JSON.stringify(patch.profileEffects)
+    );
+  }
+
   if (fields.length === 0) {
     const current = await findById(userId);
 

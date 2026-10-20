@@ -8,26 +8,26 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(13, 17, 23, 0.78);
+  background: rgba(var(--color-app-bg-rgb), 0.78);
   backdrop-filter: blur(5px);
 }
 .dm-modal {
   width: 100%;
   max-width: 430px;
   padding: 24px;
-  border: 1px solid #30363d;
+  border: 1px solid var(--color-border);
   border-radius: 12px;
-  background: #161b22;
+  background: var(--color-panel-bg);
   box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
 }
 
 .dm-message {
   overflow: hidden;
   padding: 11px 13px;
-  border: 1px solid #30363d;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #161b22;
-  color: #b0bac6;
+  background: var(--color-panel-bg);
+  color: var(--color-text-muted);
   font-size: 12px;
 }
 
@@ -35,7 +35,7 @@
 .dm-typing-dots { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
 .dm-typing-dots span {
   width: 6px; height: 6px; border-radius: 50%;
-  background: #5865f2;
+  background: var(--color-primary);
   animation: dm-blink 1.2s infinite ease-in-out;
 }
 .dm-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
@@ -49,13 +49,13 @@
 .dm-pulse-dot {
   position: relative;
   width: 8px; height: 8px; border-radius: 50%;
-  background: #3fb950; flex-shrink: 0;
+  background: var(--color-success); flex-shrink: 0;
 }
 .dm-pulse-dot::after {
   content: "";
   position: absolute; inset: -4px;
   border-radius: 50%;
-  border: 2px solid rgba(63,185,80, 0.5);
+  border: 2px solid rgba(var(--color-success-rgb), 0.5);
   animation: dm-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 @keyframes dm-ping {
@@ -82,7 +82,7 @@
 
 /* Shimmer for loading / empty states */
 .dm-shimmer {
-  background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%);
+  background: linear-gradient(90deg, var(--color-panel-bg) 25%, var(--color-border-soft) 50%, var(--color-panel-bg) 75%);
   background-size: 200% 100%;
   animation: dm-shimmer 1.6s linear infinite;
 }
@@ -108,9 +108,9 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 15% 20%, rgba(88, 101, 242, 0.09), transparent 28%),
-    radial-gradient(circle at 85% 80%, rgba(88, 101, 242, 0.07), transparent 25%),
-    #0d1117;
+    radial-gradient(circle at 15% 20%, rgba(var(--color-primary-rgb), 0.09), transparent 28%),
+    radial-gradient(circle at 85% 80%, rgba(var(--color-primary-rgb), 0.07), transparent 25%),
+    var(--color-app-bg);
   animation: dm-bg-shift 18s ease-in-out infinite alternate;
   background-size: 130% 130%;
 }
@@ -122,8 +122,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(88,101,242, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(88,101,242, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(var(--color-primary-rgb), 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--color-primary-rgb), 0.05) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
   animation: dm-grid-drift 24s linear infinite;
@@ -141,7 +141,7 @@
 .dm-bg-vignette {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 55%, rgba(13,17,23, 0.55) 100%);
+  background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 55%, rgba(var(--color-app-bg-rgb), 0.55) 100%);
 }
 
 /* ------------------- Fond animé des pages d'authentification ----------------
@@ -169,7 +169,7 @@
   left: -14%;
   width: 60vw;
   height: 60vw;
-  background: radial-gradient(circle, rgba(88,101,242, 0.22), transparent 64%);
+  background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.22), transparent 64%);
   animation: dm-bg-aurora-a 26s ease-in-out infinite alternate;
 }
 
@@ -178,7 +178,7 @@
   bottom: -22%;
   width: 56vw;
   height: 56vw;
-  background: radial-gradient(circle, rgba(88,101,242, 0.18), transparent 66%);
+  background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.18), transparent 66%);
   animation: dm-bg-aurora-b 32s ease-in-out infinite alternate;
 }
 
@@ -187,7 +187,7 @@
   bottom: -26%;
   width: 44vw;
   height: 44vw;
-  background: radial-gradient(circle, rgba(88,101,242, 0.11), transparent 68%);
+  background: radial-gradient(circle, rgba(var(--color-primary-rgb), 0.11), transparent 68%);
   animation: dm-bg-aurora-c 29s ease-in-out infinite alternate;
 }
 
@@ -289,9 +289,9 @@
   background: linear-gradient(
     100deg,
     transparent 0%,
-    rgba(139,148,158, 0.05) 42%,
+    rgba(var(--color-text-secondary-rgb), 0.05) 42%,
     rgba(220,226,232, 0.09) 52%,
-    rgba(88,101,242, 0.05) 62%,
+    rgba(var(--color-primary-rgb), 0.05) 62%,
     transparent 100%
   );
   transform: skewX(-12deg);
@@ -330,8 +330,8 @@
   position: absolute;
   display: block;
   border-radius: 50%;
-  background: #7985ff;
-  box-shadow: 0 0 7px rgba(121,133,255, 0.8);
+  background: var(--color-accent-bright);
+  box-shadow: 0 0 7px rgba(var(--color-accent-rgb), 0.8);
   opacity: 0.12;
   animation-name: dm-bg-twinkle;
   animation-timing-function: ease-in-out;
@@ -377,8 +377,10 @@
 @media (prefers-reduced-motion: reduce) {
   .dm-bg-aurora span,
   .dm-bg-beam,
+  .dm-bg-sphere,
   .dm-bg-sweep,
-  .dm-bg-stars span {
+  .dm-bg-stars span,
+  .dm-bg-particle {
     animation: none;
   }
 
@@ -394,6 +396,46 @@
     display: none;
   }
 }
+
+/* Sphère 3D tournante au centre du décor : cœur lumineux premium. */
+.dm-bg-sphere {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 340px;
+  height: 340px;
+  margin-top: -170px;
+  margin-left: -170px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 35%, rgba(var(--theme-glow-rgb), 0.35), transparent 40%),
+    radial-gradient(circle at 65% 65%, rgba(var(--theme-glow-2-rgb), 0.2), transparent 55%),
+    conic-gradient(from 0deg, transparent, rgba(var(--theme-glow-rgb), 0.08), transparent);
+  filter: blur(16px);
+  opacity: 0.75;
+  will-change: transform;
+  mix-blend-mode: screen;
+}
+
+/* Particules flottantes 3D qui montent lentement. */
+.dm-bg-particle {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: rgba(var(--color-accent-bright-rgb), 0.5);
+  box-shadow: 0 0 10px rgba(var(--color-accent-rgb), 0.6);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.dm-bg-particle:nth-child(odd) {
+  background: rgba(var(--color-accent-bright-rgb), 0.4);
+}
+
+.dm-bg-particle:nth-child(3n) {
+  background: rgba(var(--theme-glow-2-rgb), 0.45);
+}
+
 /* Le contenu des pages passe au-dessus du fond */
 .dm-page {
   position: relative;

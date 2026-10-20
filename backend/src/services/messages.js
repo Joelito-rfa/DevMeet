@@ -10,7 +10,11 @@ const MESSAGE_SELECT = `
   SELECT m.*,
          u.name AS author_name,
          u.avatar_url AS author_avatar_url,
-         u.status AS author_status
+         u.status AS author_status,
+         u.profile_background AS author_profile_background,
+         u.profile_banner AS author_profile_banner,
+         u.avatar_frame AS author_avatar_frame,
+         u.profile_effects AS author_profile_effects
   FROM messages m
   LEFT JOIN users u ON u.id = m.author_id
 `;

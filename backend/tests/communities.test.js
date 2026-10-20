@@ -139,6 +139,51 @@ test("créer une communauté écrit réellement en base", async () => {
   assert.equal(found.channelCount, 1);
 });
 
+test("le rôle du propriétaire est marqué propriétaire, en fiche comme en liste", async () => {
+  const { account, community } = await newCommunity({ isPublic: false });
+
+  const member = await createAccount("isowner-member");
+  accounts.push(member);
+  await addMember(community.id, account, member, ROLES.MEMBER);
+
+  // `isOwner` pilote des décisions d'interface (« Quitter la communauté » dans
+  // le menu du serveur, transfert de propriété). Régression : `resolveRolesFor`
+  // hydratait le rôle sans passer `isOwner`, et le propriétaire se retrouvait
+  // avec la possibilité de quitter sa propre communauté.
+  const detail = await api(`/api/communities/${community.id}`, {
+    token: account.token,
+  });
+
+  assert.equal(detail.status, 200);
+  assert.equal(detail.body.community.role.key, ROLES.OWNER);
+  assert.equal(detail.body.community.role.isOwner, true);
+  assert.ok(detail.body.community.role.permissions.length > 0);
+
+  // …et la liste des communautés doit dire la même chose : sinon la fiche et
+  // la pastille de navigation divergent pour un même membre.
+  const list = await api("/api/communities", { token: account.token });
+  const found = list.body.communities.find((item) => item.id === community.id);
+
+  assert.equal(found.role.isOwner, true);
+
+  // Un simple membre n'est jamais propriétaire, sur les mêmes routes.
+  const asMember = await api(`/api/communities/${community.id}`, {
+    token: member.token,
+  });
+
+  assert.equal(asMember.body.community.role.key, ROLES.MEMBER);
+  assert.equal(asMember.body.community.role.isOwner, false);
+
+  // Conséquence serveur de ce drapeau : le propriétaire ne peut pas quitter.
+  const leave = await api(`/api/communities/${community.id}/leave`, {
+    method: "POST",
+    token: account.token,
+  });
+
+  assert.equal(leave.status, 403);
+  assert.equal(leave.body.code, "owner_cannot_leave");
+});
+
 test("une communauté privée n'est pas proposée à la découverte", async () => {
   const { community } = await newCommunity({ isPublic: false });
   const other = await owner();
@@ -1384,6 +1429,76 @@ test("le tableau blanc est persisté et restitué", async () => {
   assert.equal(restored.body.board.version, 1);
   assert.deepEqual(restored.body.board.data, data);
   assert.equal(restored.body.board.updatedBy.id, account.id);
+});
+
+test("l'historique du tableau permet de consulter et de restaurer une version", async () => {
+  const { account, community } = await newCommunity();
+
+  const channel = await newChannel(account.token, community.id, {
+    name: "board-historique",
+    type: "board",
+  });
+
+  const first = {
+    version: "6.7.0",
+    objects: [{ type: "rect", left: 10, top: 20 }],
+  };
+
+  await api(`/api/channels/${channel.id}/board`, {
+    method: "PUT",
+    token: account.token,
+    body: { data: first },
+  });
+
+  const second = {
+    version: "6.7.0",
+    objects: [{ type: "circle", left: 80, top: 90 }],
+  };
+
+  const saved = await api(`/api/channels/${channel.id}/board`, {
+    method: "PUT",
+    token: account.token,
+    body: { data: second },
+  });
+
+  assert.equal(saved.status, 200);
+  assert.equal(saved.body.board.version, 2);
+
+  // La deuxième écriture archive l'état précédent.
+  const history = await api(`/api/channels/${channel.id}/board/versions`, {
+    token: account.token,
+  });
+
+  assert.equal(history.status, 200);
+  assert.equal(history.body.versions.length, 1);
+  assert.equal(history.body.versions[0].version, 1);
+  assert.equal(history.body.versions[0].createdBy.id, account.id);
+  assert.equal(history.body.versions[0].data, undefined);
+
+  const versionId = history.body.versions[0].id;
+
+  const detail = await api(
+    `/api/channels/${channel.id}/board/versions/${versionId}`,
+    { token: account.token }
+  );
+
+  assert.equal(detail.status, 200);
+  assert.deepEqual(detail.body.version.data, first);
+
+  const restored = await api(
+    `/api/channels/${channel.id}/board/versions/${versionId}/restore`,
+    { method: "POST", token: account.token }
+  );
+
+  assert.equal(restored.status, 200);
+  assert.equal(restored.body.board.version, 3);
+  assert.deepEqual(restored.body.board.data, first);
+
+  const unknown = await api(`/api/channels/${channel.id}/board/versions/999999`, {
+    token: account.token,
+  });
+
+  assert.equal(unknown.status, 404);
 });
 
 test("une écriture du tableau avec une version obsolète est refusée", async () => {

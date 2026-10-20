@@ -734,4 +734,102 @@ router.put("/:channelId/board", requireChannelAccess(), async (req, res, next) =
   }
 });
 
+// -----------------------------------------------------------------------------
+// Historique du tableau blanc
+// -----------------------------------------------------------------------------
+
+/**
+ * Vérifie le droit d'accès au tableau, en lecture ou en écriture.
+ *
+ * Les versions suivent exactement la même règle que l'état courant : un salon
+ * public reste consultable par ses membres, un salon privé exige la permission
+ * explicite. La restauration, elle, modifie le tableau.
+ */
+function assertBoardHistoryAccess(req, { write = false } = {}) {
+  const allowed =
+    hasPermission(req.channelAccess.role, PERMISSIONS.ACCESS_WHITEBOARD) ||
+    req.channelAccess.community.is_public === 1;
+
+  if (!allowed) {
+    throw forbidden(
+      write
+        ? "Restauration du tableau blanc refusée."
+        : "Consultation de l'historique du tableau refusée.",
+      "missing_permission"
+    );
+  }
+}
+
+function parseVersionId(value) {
+  const versionId = Number(value);
+
+  if (!Number.isInteger(versionId) || versionId <= 0) {
+    throw notFound("Version du tableau introuvable.", "board_version_not_found");
+  }
+
+  return versionId;
+}
+
+router.get(
+  "/:channelId/board/versions",
+  requireChannelAccess(),
+  async (req, res, next) => {
+    try {
+      assertBoardHistoryAccess(req);
+
+      const versions = await boardsService.listVersions(req.channel.id);
+      res.json({ versions });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.get(
+  "/:channelId/board/versions/:versionId",
+  requireChannelAccess(),
+  async (req, res, next) => {
+    try {
+      assertBoardHistoryAccess(req);
+
+      const version = await boardsService.getVersion(
+        req.channel.id,
+        parseVersionId(req.params.versionId)
+      );
+
+      res.json({ version });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+router.post(
+  "/:channelId/board/versions/:versionId/restore",
+  requireChannelAccess(),
+  async (req, res, next) => {
+    try {
+      assertBoardHistoryAccess(req, { write: true });
+
+      const board = await boardsService.restore(
+        req.channel.id,
+        parseVersionId(req.params.versionId),
+        req.user.id
+      );
+
+      // Tout le salon doit voir le tableau restauré, y compris l'auteur de la
+      // restauration (il est dans la même chambre Socket.IO).
+      bus.toChannel(req.channel.id, "canvas-update", board.data);
+      bus.toChannel(req.channel.id, "board:update", {
+        channelId: Number(req.channel.id),
+        board,
+      });
+
+      res.json({ message: "Version restaurée.", board });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 module.exports = router;

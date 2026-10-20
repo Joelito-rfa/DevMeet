@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { MousePointer2, Pencil, Eraser, Type, StickyNote, Minus, MoveRight, PaintBucket, Pipette, Trash2, Undo2, Redo2, Copy, ClipboardPaste, ZoomIn, ZoomOut, Download, ImageDown, Square, Circle as CircleIcon, Triangle as TriangleIcon, Diamond, Star, Hexagon, Pentagon } from "lucide-react";
+import { MousePointer2, Pencil, Eraser, Type, StickyNote, Minus, MoveRight, PaintBucket, Pipette, Trash2, Undo2, Redo2, Copy, ClipboardPaste, ZoomIn, ZoomOut, Download, ImageDown, History, Eye, X, RotateCcw, RefreshCw, Square, Circle as CircleIcon, Triangle as TriangleIcon, Diamond, Star, Hexagon, Pentagon } from "lucide-react";
 import socket from "../../services/socket";
+import { apiFetch } from "../../services/api";
 import {
   Canvas,
+  StaticCanvas,
   Rect,
   Circle,
   Triangle,
@@ -15,7 +18,56 @@ import {
   PencilBrush,
 } from "fabric";
 
-function Whiteboard({ roomId }) {
+/** Date lisible d'une version du tableau (français, fuseau local). */
+function formatVersionDate(value) {
+  if (!value) {
+    return "date inconnue";
+  }
+
+  try {
+    return new Intl.DateTimeFormat("fr-FR", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    }).format(new Date(value));
+  } catch {
+    return value;
+  }
+}
+
+/**
+ * Aperçu figé d'une version : un canevas Fabric autonome (StaticCanvas),
+ * indépendant du tableau en cours d'édition. Rien n'est envoyé au serveur et
+ * les autres participants ne voient pas cet aperçu.
+ */
+function VersionPreviewCanvas({ data }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const element = canvasRef.current;
+
+    if (!element || !data) {
+      return undefined;
+    }
+
+    const width = Math.min(960, Math.max(320, window.innerWidth - 260));
+    const scale = width / 1100;
+
+    const canvas = new StaticCanvas(element, {
+      width,
+      height: Math.round(650 * scale),
+      backgroundColor: "#ffffff",
+    });
+
+    canvas.setZoom(scale);
+    canvas.loadFromJSON(data).then(() => canvas.renderAll()).catch(() => {});
+
+    return () => canvas.dispose();
+  }, [data]);
+
+  return <canvas ref={canvasRef} style={{ display: "block", borderRadius: "8px" }} />;
+}
+
+function Whiteboard({ roomId, token }) {
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const activeToolRef = useRef("select");
@@ -68,6 +120,15 @@ function Whiteboard({ roomId }) {
   const [, setShowMoreShapes] = useState(true);
 
   const [zoom, setZoom] = useState(1);
+
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [versions, setVersions] = useState([]);
+  const [versionsLoading, setVersionsLoading] = useState(false);
+  const [versionsError, setVersionsError] = useState("");
+  const [previewVersion, setPreviewVersion] = useState(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [restoreTarget, setRestoreTarget] = useState(null);
+  const [restoring, setRestoring] = useState(false);
 
   const [remoteCursors, setRemoteCursors] =
     useState({});
@@ -1961,6 +2022,119 @@ function Whiteboard({ roomId }) {
     link.click();
   }
 
+  // --- Historique du tableau ------------------------------------------------
+
+  async function loadVersions() {
+    if (!roomId) {
+      return;
+    }
+
+    setVersionsLoading(true);
+    setVersionsError("");
+
+    try {
+      const result = await apiFetch(`/api/channels/${roomId}/board/versions`, {
+        token,
+      });
+
+      if (!result.ok) {
+        setVersionsError(
+          result.data?.message || "Impossible de charger l'historique."
+        );
+        return;
+      }
+
+      setVersions(result.data?.versions || []);
+    } catch {
+      setVersionsError("Impossible de charger l'historique du tableau.");
+    } finally {
+      setVersionsLoading(false);
+    }
+  }
+
+  function openHistory() {
+    setHistoryOpen(true);
+    loadVersions();
+  }
+
+  async function openVersionPreview(version) {
+    setVersionsError("");
+    setPreviewVersion({ ...version, data: null });
+    setPreviewLoading(true);
+
+    try {
+      const result = await apiFetch(
+        `/api/channels/${roomId}/board/versions/${version.id}`,
+        { token }
+      );
+
+      if (!result.ok) {
+        setVersionsError(
+          result.data?.message || "Impossible d'ouvrir cette version."
+        );
+        setPreviewVersion(null);
+        return;
+      }
+
+      setPreviewVersion(result.data?.version || null);
+    } catch {
+      setVersionsError("Impossible d'ouvrir cette version.");
+      setPreviewVersion(null);
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  /** Applique un dessin venu du serveur et repart d'un historique local propre. */
+  async function applyBoardData(data) {
+    const canvas = fabricCanvasRef.current;
+
+    if (!canvas || !data) {
+      return;
+    }
+
+    await canvas.loadFromJSON(data);
+    canvas.renderAll();
+    historyRef.current = [JSON.stringify(canvas.toJSON())];
+    redoRef.current = [];
+  }
+
+  async function restoreVersion(version) {
+    if (!version) {
+      return;
+    }
+
+    setRestoring(true);
+    setVersionsError("");
+
+    try {
+      const result = await apiFetch(
+        `/api/channels/${roomId}/board/versions/${version.id}/restore`,
+        { method: "POST", token }
+      );
+
+      if (!result.ok) {
+        setVersionsError(
+          result.data?.message || "La restauration a échoué."
+        );
+        return;
+      }
+
+      setRestoreTarget(null);
+      setPreviewVersion(null);
+
+      // Le serveur diffuse aussi `canvas-update` aux autres membres ; on
+      // applique localement la réponse pour ne pas dépendre de l'ordre
+      // d'arrivée des événements.
+      await applyBoardData(result.data?.board?.data ?? null);
+      await loadVersions();
+    } catch {
+      setVersionsError("La restauration a échoué.");
+    } finally {
+      setRestoring(false);
+    }
+  }
+
   const palette = [
     "#000000",
     "#ffffff",
@@ -1991,14 +2165,14 @@ function Whiteboard({ roomId }) {
     height: "55px",
     border:
       activeTool === tool
-        ? "1px solid #5865f2"
+        ? "1px solid var(--color-primary)"
         : "1px solid transparent",
     borderRadius: "5px",
     background:
       activeTool === tool
-        ? "#343b4a"
+        ? "var(--color-selected)"
         : "transparent",
-    color: "#f0f6fc",
+    color: "var(--color-text-primary)",
     cursor: "pointer",
     display: "flex",
     flexDirection:
@@ -2020,24 +2194,67 @@ function Whiteboard({ roomId }) {
     height: "28px",
     padding: "0 9px",
     border:
-      "1px solid #30363d",
+      "1px solid var(--color-border)",
     borderRadius: "4px",
-    background: "#f0f6fc",
-    color: "#f0f6fc",
+    background: "var(--color-hover)",
+    color: "var(--color-text-primary)",
     cursor: "pointer",
     fontSize: "9px",
+  };
+
+  const iconButtonStyle = {
+    width: "26px",
+    height: "26px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    border: "1px solid var(--color-border)",
+    borderRadius: "6px",
+    background: "var(--color-panel-bg)",
+    color: "var(--color-text-secondary)",
+    cursor: "pointer",
+  };
+
+  const panelButtonStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "4px",
+    height: "26px",
+    padding: "0 9px",
+    border: "1px solid var(--color-border)",
+    borderRadius: "6px",
+    background: "var(--color-hover)",
+    color: "var(--color-text-primary)",
+    cursor: "pointer",
+    fontSize: "10px",
+  };
+
+  const primaryPanelButtonStyle = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "6px",
+    height: "32px",
+    padding: "0 13px",
+    border: "none",
+    borderRadius: "8px",
+    background:
+      "linear-gradient(135deg,var(--color-primary),var(--color-accent-bright))",
+    color: "var(--color-text-primary)",
+    cursor: "pointer",
+    fontSize: "11px",
+    fontWeight: 600,
   };
 
   return (
     <div
       style={{
         width: "100%",
-        background: "#e9ecef",
+        background: "var(--color-app-bg)",
         border:
-          "1px solid #30363d",
+          "1px solid var(--color-border)",
         borderRadius: "5px",
         overflow: "hidden",
-        color: "#f0f6fc",
+        color: "var(--color-text-primary)",
         boxShadow:
           "0 3px 14px rgba(0,0,0,0.12)",
       }}
@@ -2051,9 +2268,9 @@ function Whiteboard({ roomId }) {
           justifyContent:
             "space-between",
           background:
-            "#f0f6fc",
+            "var(--color-hover)",
           borderBottom:
-            "1px solid #30363d",
+            "1px solid var(--color-border)",
         }}
       >
         <div
@@ -2074,8 +2291,8 @@ function Whiteboard({ roomId }) {
                 "center",
               borderRadius: "5px",
               background:
-                "linear-gradient(135deg,#5865f2,#5865f2)",
-              color: "#f0f6fc",
+                "linear-gradient(135deg,var(--color-primary),var(--color-primary))",
+              color: "var(--color-text-primary)",
               fontSize: "13px",
               fontWeight: "700",
             }}
@@ -2094,7 +2311,7 @@ function Whiteboard({ roomId }) {
 
           <span
             style={{
-              color: "#8b949e",
+              color: "var(--color-text-secondary)",
             }}
           >
             /
@@ -2102,7 +2319,7 @@ function Whiteboard({ roomId }) {
 
           <span
             style={{
-              color: "#8b949e",
+              color: "var(--color-text-secondary)",
               fontSize: "12px",
             }}
           >
@@ -2115,7 +2332,7 @@ function Whiteboard({ roomId }) {
             display: "flex",
             alignItems: "center",
             gap: "6px",
-            color: "#3fb950",
+            color: "var(--color-success)",
             fontSize: "9px",
             fontWeight: "600",
           }}
@@ -2127,7 +2344,7 @@ function Whiteboard({ roomId }) {
               borderRadius:
                 "50%",
               background:
-                "#3fb950",
+                "var(--color-success)",
             }}
           />
           Synchronisé
@@ -2142,11 +2359,11 @@ function Whiteboard({ roomId }) {
           gap: "20px",
           padding: "0 17px",
           background:
-            "#f0f6fc",
+            "var(--color-hover)",
           borderBottom:
-            "1px solid #30363d",
+            "1px solid var(--color-border)",
           fontSize: "10px",
-          color: "#f0f6fc",
+          color: "var(--color-text-primary)",
         }}
       >
         <span
@@ -2171,9 +2388,9 @@ function Whiteboard({ roomId }) {
           padding:
             "10px 12px",
           background:
-            "#eceff2",
+            "var(--color-content-bg)",
           borderBottom:
-            "1px solid #30363d",
+            "1px solid var(--color-border)",
           overflowX:
             "auto",
         }}
@@ -2194,10 +2411,10 @@ function Whiteboard({ roomId }) {
               padding: "4px",
               gap: "2px",
               border:
-                "1px solid #30363d",
+                "1px solid var(--color-border)",
               borderRadius: "5px",
               background:
-                "#f8f9fa",
+                "var(--color-content-bg)",
             }}
           >
             {[
@@ -2286,9 +2503,9 @@ function Whiteboard({ roomId }) {
               padding:
                 "0 9px",
               borderLeft:
-                "1px solid #30363d",
+                "1px solid var(--color-border)",
               borderRight:
-                "1px solid #30363d",
+                "1px solid var(--color-border)",
             }}
           >
             <div
@@ -2296,7 +2513,7 @@ function Whiteboard({ roomId }) {
                 marginBottom:
                   "5px",
                 color:
-                  "#8b949e",
+                  "var(--color-text-secondary)",
                 fontSize:
                   "8px",
                 fontWeight:
@@ -2376,13 +2593,13 @@ function Whiteboard({ roomId }) {
                       height:
                         "27px",
                       border:
-                        "1px solid #30363d",
+                        "1px solid var(--color-border)",
                       borderRadius:
                         "4px",
                       background:
-                        "#f0f6fc",
+                        "var(--color-hover)",
                       color:
-                        "#f0f6fc",
+                        "var(--color-text-primary)",
                       cursor:
                         "pointer",
                       fontSize:
@@ -2415,17 +2632,17 @@ function Whiteboard({ roomId }) {
                 border:
                   activeTool ===
                   "line"
-                    ? "1px solid #5865f2"
-                    : "1px solid #30363d",
+                    ? "1px solid var(--color-primary)"
+                    : "1px solid var(--color-border)",
                 borderRadius:
                   "4px",
                 background:
                   activeTool ===
                   "line"
-                    ? "#343b4a"
-                    : "#f0f6fc",
+                    ? "var(--color-selected)"
+                    : "var(--color-hover)",
                 color:
-                  "#f0f6fc",
+                  "var(--color-text-primary)",
                 cursor:
                   "pointer",
                 fontSize:
@@ -2457,17 +2674,17 @@ function Whiteboard({ roomId }) {
                 border:
                   activeTool ===
                   "arrow"
-                    ? "1px solid #5865f2"
-                    : "1px solid #30363d",
+                    ? "1px solid var(--color-primary)"
+                    : "1px solid var(--color-border)",
                 borderRadius:
                   "4px",
                 background:
                   activeTool ===
                   "arrow"
-                    ? "#343b4a"
-                    : "#f0f6fc",
+                    ? "var(--color-selected)"
+                    : "var(--color-hover)",
                 color:
-                  "#f0f6fc",
+                  "var(--color-text-primary)",
                 cursor:
                   "pointer",
                 fontSize:
@@ -2483,7 +2700,7 @@ function Whiteboard({ roomId }) {
               padding:
                 "0 9px",
               borderRight:
-                "1px solid #30363d",
+                "1px solid var(--color-border)",
             }}
           >
             <div
@@ -2491,7 +2708,7 @@ function Whiteboard({ roomId }) {
                 marginBottom:
                   "5px",
                 color:
-                  "#8b949e",
+                  "var(--color-text-secondary)",
                 fontSize:
                   "8px",
                 fontWeight:
@@ -2529,17 +2746,17 @@ function Whiteboard({ roomId }) {
                       border:
                         strokeWidth ===
                         size
-                          ? "1px solid #5865f2"
+                          ? "1px solid var(--color-primary)"
                           : "1px solid transparent",
                       borderRadius:
                         "3px",
                       background:
                         strokeWidth ===
                         size
-                          ? "#343b4a"
+                          ? "var(--color-selected)"
                           : "transparent",
                       color:
-                        "#424851",
+                        "var(--color-text-secondary)",
                       cursor:
                         "pointer",
                       fontSize:
@@ -2566,7 +2783,7 @@ function Whiteboard({ roomId }) {
               padding:
                 "0 9px",
               borderRight:
-                "1px solid #30363d",
+                "1px solid var(--color-border)",
             }}
           >
             <div
@@ -2574,7 +2791,7 @@ function Whiteboard({ roomId }) {
                 marginBottom:
                   "5px",
                 color:
-                  "#8b949e",
+                  "var(--color-text-secondary)",
                 fontSize:
                   "8px",
                 fontWeight:
@@ -2613,7 +2830,7 @@ function Whiteboard({ roomId }) {
                   border:
                     paletteTarget ===
                     "primary"
-                      ? "1px solid #5865f2"
+                      ? "1px solid var(--color-primary)"
                       : "1px solid transparent",
                   borderRadius:
                     "3px",
@@ -2630,7 +2847,7 @@ function Whiteboard({ roomId }) {
                     fontSize:
                       "8px",
                     color:
-                      "#59616b",
+                      "var(--color-text-secondary)",
                   }}
                 >
                   Couleur 1
@@ -2643,7 +2860,7 @@ function Whiteboard({ roomId }) {
                     height:
                       "22px",
                     border:
-                      "1px solid #7d838b",
+                      "1px solid var(--color-border)",
                     borderRadius:
                       "3px",
                     background:
@@ -2669,7 +2886,7 @@ function Whiteboard({ roomId }) {
                   border:
                     paletteTarget ===
                     "secondary"
-                      ? "1px solid #5865f2"
+                      ? "1px solid var(--color-primary)"
                       : "1px solid transparent",
                   borderRadius:
                     "3px",
@@ -2686,7 +2903,7 @@ function Whiteboard({ roomId }) {
                     fontSize:
                       "8px",
                     color:
-                      "#59616b",
+                      "var(--color-text-secondary)",
                   }}
                 >
                   Couleur 2
@@ -2699,7 +2916,7 @@ function Whiteboard({ roomId }) {
                     height:
                       "22px",
                     border:
-                      "1px solid #7d838b",
+                      "1px solid var(--color-border)",
                     borderRadius:
                       "3px",
                     background:
@@ -2737,7 +2954,7 @@ function Whiteboard({ roomId }) {
                       padding:
                         0,
                       border:
-                        "1px solid #b8bdc4",
+                        "1px solid var(--color-border)",
                       borderRadius:
                         "50%",
                       background:
@@ -2762,7 +2979,7 @@ function Whiteboard({ roomId }) {
                 marginBottom:
                   "5px",
                 color:
-                  "#8b949e",
+                  "var(--color-text-secondary)",
                 fontSize:
                   "8px",
                 fontWeight:
@@ -2795,7 +3012,7 @@ function Whiteboard({ roomId }) {
                   fontSize:
                     "8px",
                   color:
-                    "#59616b",
+                    "var(--color-text-secondary)",
                 }}
               >
                 <input
@@ -2827,7 +3044,7 @@ function Whiteboard({ roomId }) {
                   fontSize:
                     "8px",
                   color:
-                    "#59616b",
+                    "var(--color-text-secondary)",
                 }}
               >
                 <input
@@ -2859,7 +3076,7 @@ function Whiteboard({ roomId }) {
                   fontSize:
                     "8px",
                   color:
-                    "#59616b",
+                    "var(--color-text-secondary)",
                 }}
               >
                 <input
@@ -2895,9 +3112,9 @@ function Whiteboard({ roomId }) {
           padding:
             "7px 12px",
           background:
-            "#f5f6f7",
+            "var(--color-content-bg)",
           borderBottom:
-            "1px solid #30363d",
+            "1px solid var(--color-border)",
         }}
       >
         <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
@@ -2956,6 +3173,22 @@ function Whiteboard({ roomId }) {
           <ImageDown size={15} /> JPEG
         </motion.button>
 
+        <motion.button whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.92 }}
+          type="button"
+          onClick={historyOpen ? () => setHistoryOpen(false) : openHistory}
+          style={{
+            ...actionStyle,
+            ...(historyOpen
+              ? {
+                  borderColor: "var(--color-accent-bright)",
+                  color: "var(--color-accent-bright)",
+                }
+              : {}),
+          }}
+        >
+          <History size={15} /> Historique
+        </motion.button>
+
         <div
           style={{
             marginLeft:
@@ -2987,7 +3220,7 @@ function Whiteboard({ roomId }) {
               textAlign:
                 "center",
               color:
-                "#59616b",
+                "var(--color-text-secondary)",
               fontSize:
                 "9px",
             }}
@@ -3012,6 +3245,180 @@ function Whiteboard({ roomId }) {
         </div>
       </div>
 
+      {historyOpen && (
+        <div
+          style={{
+            padding: "14px 16px",
+            background: "var(--color-content-bg)",
+            borderBottom: "1px solid var(--color-border)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "9px",
+              marginBottom: "10px",
+            }}
+          >
+            <History
+              size={16}
+              style={{ color: "var(--color-accent-bright)" }}
+            />
+
+            <strong style={{ fontSize: "13px" }}>Historique du tableau</strong>
+
+            <span
+              style={{
+                fontSize: "11px",
+                color: "var(--color-text-secondary)",
+              }}
+            >
+              Un instantané toutes les deux minutes · 40 versions conservées
+            </span>
+
+            <button
+              type="button"
+              onClick={loadVersions}
+              title="Actualiser l'historique"
+              style={{ ...iconButtonStyle, marginLeft: "auto" }}
+            >
+              <RefreshCw size={14} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setHistoryOpen(false)}
+              title="Fermer l'historique"
+              style={iconButtonStyle}
+            >
+              <X size={15} />
+            </button>
+          </div>
+
+          {versionsError ? (
+            <div
+              style={{
+                padding: "9px 11px",
+                border: "1px solid var(--color-error-soft)",
+                borderRadius: "8px",
+                background: "var(--color-error-deep)",
+                color: "var(--color-error)",
+                fontSize: "11px",
+                lineHeight: 1.5,
+              }}
+            >
+              {versionsError}
+            </div>
+          ) : versionsLoading ? (
+            <p
+              style={{
+                margin: 0,
+                color: "var(--color-text-secondary)",
+                fontSize: "11px",
+              }}
+            >
+              Chargement de l'historique…
+            </p>
+          ) : versions.length === 0 ? (
+            <p
+              style={{
+                margin: 0,
+                color: "var(--color-text-secondary)",
+                fontSize: "11px",
+                lineHeight: 1.6,
+              }}
+            >
+              Aucune version pour l'instant. Le premier instantané sera créé
+              lors d'une modification ultérieure (au plus une toutes les deux
+              minutes).
+            </p>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gap: "6px",
+                maxHeight: "230px",
+                overflowY: "auto",
+                paddingRight: "4px",
+              }}
+            >
+              {versions.map((version) => (
+                <div
+                  key={version.id}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "11px",
+                    padding: "8px 11px",
+                    border: "1px solid var(--color-border)",
+                    borderRadius: "9px",
+                    background: "var(--color-panel-bg)",
+                  }}
+                >
+                  <span
+                    style={{
+                      minWidth: "34px",
+                      padding: "3px 6px",
+                      borderRadius: "6px",
+                      background: "rgba(var(--color-primary-rgb), 0.16)",
+                      color: "var(--color-accent-bright)",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      textAlign: "center",
+                    }}
+                  >
+                    v{version.version}
+                  </span>
+
+                  <div style={{ minWidth: 0 }}>
+                    <div style={{ fontSize: "11px", fontWeight: 600 }}>
+                      {formatVersionDate(version.createdAt)}
+                    </div>
+
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        color: "var(--color-text-secondary)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {version.createdBy?.name || "Auteur inconnu"}
+                    </div>
+                  </div>
+
+                  <div
+                    style={{
+                      marginLeft: "auto",
+                      display: "flex",
+                      gap: "6px",
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => openVersionPreview(version)}
+                      style={panelButtonStyle}
+                    >
+                      <Eye size={13} /> Aperçu
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setRestoreTarget(version)}
+                      style={panelButtonStyle}
+                    >
+                      <RotateCcw size={13} /> Restaurer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       <div
         style={{
           padding:
@@ -3019,7 +3426,7 @@ function Whiteboard({ roomId }) {
           minHeight:
             "720px",
           background:
-            "#dfe2e6",
+            "var(--color-border-soft)",
           overflow:
             "auto",
         }}
@@ -3035,9 +3442,9 @@ function Whiteboard({ roomId }) {
             margin:
               "0 auto",
             background:
-              "#f0f6fc",
+              "var(--color-hover)",
             border:
-              "1px solid #b7bdc5",
+              "1px solid var(--color-border)",
             boxShadow:
               "0 5px 16px rgba(0,0,0,0.16)",
             overflow:
@@ -3075,9 +3482,9 @@ function Whiteboard({ roomId }) {
                   borderRadius:
                     "50%",
                   background:
-                    "#f85149",
+                    "var(--color-error)",
                   border:
-                    "2px solid #f0f6fc",
+                    "2px solid var(--color-text-primary)",
                   pointerEvents:
                     "none",
                   transform:
@@ -3103,11 +3510,11 @@ function Whiteboard({ roomId }) {
           padding:
             "0 13px",
           background:
-            "#f4f5f6",
+            "var(--color-content-bg)",
           borderTop:
-            "1px solid #ccd1d6",
+            "1px solid var(--color-border-soft)",
           color:
-            "#5f6873",
+            "var(--color-text-secondary)",
           fontSize:
             "8px",
         }}
@@ -3143,6 +3550,234 @@ function Whiteboard({ roomId }) {
           %
         </span>
       </div>
+
+      {previewVersion
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={() => setPreviewVersion(null)}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 120,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "24px",
+                background: "rgba(3, 7, 18, 0.72)",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              <div
+                onClick={(event) => event.stopPropagation()}
+                style={{
+                  width: "min(1040px, 94vw)",
+                  maxHeight: "92vh",
+                  overflow: "auto",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "14px",
+                  background: "var(--color-panel-bg)",
+                  boxShadow: "0 30px 80px rgba(0, 0, 0, 0.55)",
+                }}
+              >
+                <header
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    padding: "14px 18px",
+                    borderBottom: "1px solid var(--color-border)",
+                  }}
+                >
+                  <Eye
+                    size={17}
+                    style={{ color: "var(--color-accent-bright)" }}
+                  />
+
+                  <div>
+                    <strong style={{ display: "block", fontSize: "13px" }}>
+                      Version du {formatVersionDate(previewVersion.createdAt)}
+                    </strong>
+
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--color-text-secondary)",
+                      }}
+                    >
+                      v{previewVersion.version} ·{" "}
+                      {previewVersion.createdBy?.name || "Auteur inconnu"}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setPreviewVersion(null)}
+                    title="Fermer l'aperçu"
+                    style={{ ...iconButtonStyle, marginLeft: "auto" }}
+                  >
+                    <X size={16} />
+                  </button>
+                </header>
+
+                <div
+                  style={{
+                    padding: "16px",
+                    background: "var(--color-border-soft)",
+                  }}
+                >
+                  {previewLoading || !previewVersion.data ? (
+                    <p
+                      style={{
+                        margin: 0,
+                        color: "var(--color-text-secondary)",
+                        fontSize: "12px",
+                      }}
+                    >
+                      Chargement de l'aperçu…
+                    </p>
+                  ) : (
+                    <VersionPreviewCanvas data={previewVersion.data} />
+                  )}
+                </div>
+
+                <footer
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "flex-end",
+                    gap: "8px",
+                    padding: "12px 18px",
+                    borderTop: "1px solid var(--color-border)",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setPreviewVersion(null)}
+                    style={panelButtonStyle}
+                  >
+                    Fermer
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setRestoreTarget(previewVersion)}
+                    style={primaryPanelButtonStyle}
+                  >
+                    <RotateCcw size={14} /> Restaurer cette version
+                  </button>
+                </footer>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
+
+      {restoreTarget
+        ? createPortal(
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={() => {
+                if (!restoring) {
+                  setRestoreTarget(null);
+                }
+              }}
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 130,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "24px",
+                background: "rgba(3, 7, 18, 0.72)",
+                backdropFilter: "blur(4px)",
+              }}
+            >
+              <div
+                onClick={(event) => event.stopPropagation()}
+                style={{
+                  width: "min(440px, 92vw)",
+                  padding: "20px",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "14px",
+                  background: "var(--color-panel-bg)",
+                  boxShadow: "0 30px 80px rgba(0, 0, 0, 0.55)",
+                }}
+              >
+                <strong
+                  style={{
+                    display: "block",
+                    marginBottom: "8px",
+                    fontSize: "14px",
+                  }}
+                >
+                  Restaurer cette version ?
+                </strong>
+
+                <p
+                  style={{
+                    margin: "0 0 14px",
+                    color: "var(--color-text-secondary)",
+                    fontSize: "12px",
+                    lineHeight: 1.6,
+                  }}
+                >
+                  Le tableau actuel sera remplacé par la version du{" "}
+                  {formatVersionDate(restoreTarget.createdAt)} (v
+                  {restoreTarget.version}). L'état actuel est d'abord archivé
+                  dans l'historique : l'opération reste donc réversible.
+                </p>
+
+                {versionsError ? (
+                  <div
+                    style={{
+                      marginBottom: "12px",
+                      padding: "8px 10px",
+                      border: "1px solid var(--color-error-soft)",
+                      borderRadius: "8px",
+                      background: "var(--color-error-deep)",
+                      color: "var(--color-error)",
+                      fontSize: "11px",
+                    }}
+                  >
+                    {versionsError}
+                  </div>
+                ) : null}
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    gap: "8px",
+                  }}
+                >
+                  <button
+                    type="button"
+                    disabled={restoring}
+                    onClick={() => setRestoreTarget(null)}
+                    style={panelButtonStyle}
+                  >
+                    Annuler
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={restoring}
+                    onClick={() => restoreVersion(restoreTarget)}
+                    style={primaryPanelButtonStyle}
+                  >
+                    <RotateCcw size={14} />{" "}
+                    {restoring ? "Restauration…" : "Restaurer"}
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body
+          )
+        : null}
     </div>
   );
 }

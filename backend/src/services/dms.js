@@ -26,7 +26,11 @@ const MESSAGE_SELECT = `
   SELECT m.*,
          u.name AS author_name,
          u.avatar_url AS author_avatar_url,
-         u.status AS author_status
+         u.status AS author_status,
+         u.profile_background AS author_profile_background,
+         u.profile_banner AS author_profile_banner,
+         u.avatar_frame AS author_avatar_frame,
+         u.profile_effects AS author_profile_effects
     FROM dm_messages m
     LEFT JOIN users u ON u.id = m.author_id
 `;
@@ -36,9 +40,17 @@ const CONVERSATION_SELECT = `
          ua.name AS a_name,
          ua.avatar_url AS a_avatar_url,
          ua.status AS a_status,
+         ua.profile_background AS a_profile_background,
+         ua.profile_banner AS a_profile_banner,
+         ua.avatar_frame AS a_avatar_frame,
+         ua.profile_effects AS a_profile_effects,
          ub.name AS b_name,
          ub.avatar_url AS b_avatar_url,
          ub.status AS b_status,
+         ub.profile_background AS b_profile_background,
+         ub.profile_banner AS b_profile_banner,
+         ub.avatar_frame AS b_avatar_frame,
+         ub.profile_effects AS b_profile_effects,
          m.content AS last_content,
          m.created_at AS last_created_at,
          m.author_id AS last_author_id,
