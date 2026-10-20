@@ -1,0 +1,17 @@
+# Dépendances
+node_modules/
+
+# Fichiers d'environnement (secrets : ne jamais versionner)
+.env
+.env.local
+.env.*.local
+
+# Pièces jointes déposées par les utilisateurs
+backend/uploads/
+
+# Dossiers de build
+dist/
+
+# Divers
+*.log
+.DS_Store

@@ -1,0 +1,3356 @@
+/**
+ * Styles de l'espace de travail DevMeet 2.0.
+ *
+ * Organisation du fichier :
+ *   1. ossature en trois colonnes (rail, salons, contenu) ;
+ *   2. rail des communautés ;
+ *   3. colonne des salons (catégories, salons, panneau utilisateur) ;
+ *   4. glisser-déposer et menus contextuels ;
+ *   5. contenu d'un salon et salon vocal ;
+ *   6. composants partagés (boutons, cartes, formulaires, modales, listes…) ;
+ *   7. divers ;
+ *   8. messages privés ;
+ *   9. détails partagés (keyframes, infobulles, touches, squelettes, focus) ;
+ *  10. page d'accueil (tableau de bord) ;
+ *  11. adaptation aux petits écrans.
+ *
+ * Toutes les classes sont préfixées `ws-` pour ne jamais entrer en conflit avec
+ * les styles historiques (`room-*`, `dm-*`, `devmeet-*`).
+ *
+ * Le mouvement est fait en CSS uniquement : transitions courtes au survol,
+ * animations discrètes d'apparition et de statut. Le décor animé de fond vient
+ * de `Background.jsx` ; ici, ce sont les éléments d'interface qui réagissent.
+ */
+
+/* Jetons de conception : accent, états et durées partagés par les règles.
+   Les couleurs pointent vers les jetons globaux `--color-*` définis dans
+   index.css : une seule source de vérité pour tout le thème sombre. */
+:root {
+  --ws-accent: var(--color-primary);
+  --ws-accent-2: var(--color-primary-hover);
+  --ws-accent-3: #7985ff; /* teinte claire réservée aux textes et icônes accent */
+  --ws-accent-soft: rgba(88, 101, 242, 0.14);
+  --ws-danger: var(--color-error);
+  --ws-green: var(--color-success);
+  --ws-warning: var(--color-warning);
+  --ws-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ws-fast: 0.16s;
+  --ws-medium: 0.26s;
+  --ws-slow: 0.34s;
+}
+
+/* ==========================================================================
+   1. Ossature de l'espace de travail
+   ========================================================================== */
+
+.ws-discord {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  min-height: 100vh;
+  background: transparent;
+  color: #f0f6fc;
+  /* Formes alternatives d'Inter : rendu typographique « produit ». */
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+.ws-discord ::selection {
+  background: rgba(88,101,242, 0.4);
+  color: #f0f6fc;
+}
+
+/* Colonne 2 : la sidebar des salons (tiroir sur petit écran). */
+.ws-discord-side {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  width: 288px;
+  min-width: 288px;
+  height: 100vh;
+  background: var(--color-channel-sidebar);
+}
+
+.ws-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgba(13,17,23, 0.62);
+  backdrop-filter: blur(2px);
+  display: none;
+}
+
+/* Colonne 3 : l'en-tête et le contenu de la page. */
+.ws-discord-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-content-bg);
+}
+
+.ws-discord-header {
+  position: sticky;
+  top: 0;
+  z-index: 80;
+  min-height: 78px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 1px solid #30363d;
+  background: rgba(28, 33, 40, 0.96);
+  backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow: 0 1px 0 rgba(121,133,255, 0.05), 0 22px 44px -40px rgba(0, 0, 0, 0.95);
+}
+
+.ws-discord-burger {
+  display: none;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #30363d;
+  border-radius: 11px;
+  background: transparent;
+  color: #b0bac6;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    color var(--ws-fast) var(--ws-ease);
+}
+
+.ws-discord-burger:hover {
+  border-color: #30363d;
+  background: var(--ws-accent-soft);
+  color: #f0f6fc;
+}
+
+/* L'icône de page est posée dans une pastille vitrée qui la met en valeur. */
+.ws-discord-header-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(121,133,255, 0.22);
+  border-radius: 14px;
+  background: var(--ws-accent-soft);
+  color: var(--ws-accent-3);
+  box-shadow: inset 0 0 16px rgba(88,101,242, 0.14), 0 0 22px -14px rgba(88,101,242, 0.9);
+}
+
+/* Badge de notification sur l'icône d'accueil (messages privés non lus). */
+.ws-home-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ws-home-badge {
+  position: absolute;
+  top: 6px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #f85149;
+  color: #f0f6fc;
+  border: 1.5px solid #0d1117;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(248,81,73, 0.55);
+  animation: ws-home-badge-pulse 2s infinite;
+}
+
+@keyframes ws-home-badge-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.12);
+  }
+}
+
+.ws-discord-header-titles {
+  min-width: 0;
+}
+
+.ws-discord-header-title {
+  margin: 0;
+  font-size: 18.5px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-discord-header-subtitle {
+  margin: 2px 0 0;
+  color: #8b949e;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-discord-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.ws-discord-tool {
+  color: #8b949e;
+}
+
+.ws-discord-tool:hover {
+  color: #f0f6fc;
+  background: rgba(88,101,242, 0.14);
+}
+
+.ws-discord-banner {
+  padding: 14px 28px 0;
+}
+
+.ws-discord-content {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 34px 60px;
+}
+
+/* Entrée du contenu : chaque bloc de page monte doucement, avec un léger
+   décalage en vague ; un bloc qui reste monté ne rejoue pas son animation. */
+.ws-discord-content > * {
+  animation: ws-rise var(--ws-slow) var(--ws-ease) both;
+}
+
+.ws-discord-content > *:nth-child(2) {
+  animation-delay: 0.05s;
+}
+
+.ws-discord-content > *:nth-child(3) {
+  animation-delay: 0.1s;
+}
+
+.ws-discord-content > *:nth-child(4) {
+  animation-delay: 0.15s;
+}
+
+/* Panneau « À propos du salon », ancré en haut à droite. */
+.ws-info-panel {
+  position: fixed;
+  top: 86px;
+  right: 18px;
+  z-index: 130;
+  width: 410px;
+  max-width: calc(100vw - 36px);
+  padding: 18px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 26px 64px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================================================
+   2. Colonne 1 : le rail des communautés
+   ========================================================================== */
+
+.ws-rail {
+  position: sticky;
+  top: 0;
+  z-index: 70;
+  width: 84px;
+  min-width: 84px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 18px 0;
+  background: #010409;
+  border-right: 1px solid #30363d;
+  box-shadow: 18px 0 40px -36px rgba(0, 0, 0, 0.95);
+}
+
+.ws-rail-sep {
+  width: 34px;
+  height: 2px;
+  margin: 2px 0;
+  border-radius: 2px;
+  background: #2d333b;
+  flex-shrink: 0;
+}
+
+.ws-rail-scroll {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 2px 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.ws-rail-scroll::-webkit-scrollbar {
+  width: 0;
+}
+
+.ws-rail-item {
+  position: relative;
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 16px;
+  background: #161b22;
+  color: #b0bac6;
+  cursor: pointer;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition:
+    background-color var(--ws-fast) var(--ws-ease),
+    border-radius var(--ws-fast) var(--ws-ease),
+    color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease),
+    box-shadow var(--ws-fast) var(--ws-ease);
+}
+
+.ws-rail-item:hover {
+  background: #2d333b;
+  color: #f0f6fc;
+  border-radius: 16px;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 12px 24px -14px rgba(0, 0, 0, 0.9);
+}
+
+.ws-rail-item:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.ws-rail-item:hover .ws-rail-pill,
+.ws-rail-item.active .ws-rail-pill {
+  opacity: 1;
+}
+
+.ws-rail-item.active {
+  background: var(--ws-accent);
+  border-radius: 16px;
+  color: #f0f6fc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 12px 26px -10px rgba(88,101,242, 0.7);
+}
+
+.ws-rail-item.community {
+  overflow: hidden;
+}
+
+.ws-rail-item.add {
+  background: transparent;
+  border: 1px dashed #30363d;
+  color: #8b949e;
+}
+
+.ws-rail-item.add:hover {
+  border-color: #3fb950;
+  color: #3fb950;
+  background: rgba(47, 106, 84, 0.14);
+}
+
+/* Le « + » pivote pour inviter au clic. */
+.ws-rail-item.add svg {
+  transition: transform var(--ws-medium) var(--ws-ease);
+}
+
+.ws-rail-item.add:hover svg {
+  transform: rotate(90deg);
+}
+
+.ws-rail-pill {
+  position: absolute;
+  left: -15px;
+  top: 50%;
+  width: 4px;
+  height: 34px;
+  border-radius: 0 4px 4px 0;
+  background: #7985ff;
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity var(--ws-medium) var(--ws-ease), height var(--ws-medium) var(--ws-ease);
+}
+
+/* Le témoin s'allonge légèrement au survol avant de se fixer sur l'actif. */
+.ws-rail-item:hover .ws-rail-pill {
+  height: 42px;
+}
+
+.ws-rail-letters {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  pointer-events: none;
+}
+
+.ws-rail-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ws-rail-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--ws-danger);
+  border: 2px solid #0d1117;
+  color: #f0f6fc;
+  font-size: 12px;
+  font-weight: 700;
+  animation: ws-pop 0.3s var(--ws-ease);
+  box-shadow: 0 6px 14px -6px rgba(248,81,73, 0.9);
+}
+
+/* ==========================================================================
+   3. Colonne 2 : catégories, salons, panneau utilisateur
+   ========================================================================== */
+
+.ws-channels {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: #161b22;
+  border-right: 1px solid #30363d;
+}
+
+.ws-channels-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 14px;
+  border-bottom: 1px solid #30363d;
+}
+
+.ws-channels-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 11px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #f0f6fc;
+  font-size: 17px;
+  font-weight: 650;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--ws-fast) var(--ws-ease);
+}
+
+.ws-channels-title:hover {
+  background: rgba(88,101,242, 0.1);
+}
+
+.ws-channels-title-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-channels-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ws-channels-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 14px 14px 8px;
+  padding: 11px 14px;
+  border: 1px solid #30363d;
+  border-radius: 11px;
+  background: #161b22;
+  color: #8b949e;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    box-shadow var(--ws-fast) var(--ws-ease), color var(--ws-fast) var(--ws-ease);
+}
+
+/* Le champ s'illumine quand on écrit dedans (l'icône prend la teinte d'accent). */
+.ws-channels-search:focus-within {
+  border-color: rgba(121,133,255, 0.55);
+  background: #161b22;
+  color: var(--ws-accent-3);
+  box-shadow: 0 0 0 3px rgba(88,101,242, 0.12);
+}
+
+.ws-channels-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #f0f6fc;
+  font-size: 15px;
+}
+
+.ws-channels-search-clear {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ws-channels-search-clear:hover {
+  background: rgba(88,101,242, 0.16);
+  color: #f0f6fc;
+}
+
+.ws-channels-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 12px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ws-channels-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-bottom: 12px;
+}
+
+.ws-channels-empty {
+  padding: 12px 14px;
+  color: #8b949e;
+  font-size: 14.5px;
+  line-height: 1.55;
+}
+
+.ws-channels-empty.small {
+  padding: 7px 12px 9px 34px;
+  font-size: 14px;
+}
+
+.ws-channels-create {
+  margin: 10px 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #8b949e;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ws-channels-create:hover {
+  background: rgba(88,101,242, 0.1);
+  color: #f0f6fc;
+}
+
+.ws-channels-create svg {
+  transition: transform var(--ws-medium) var(--ws-ease);
+}
+
+.ws-channels-create:hover svg {
+  transform: rotate(90deg);
+}
+
+/* État « aucune communauté ouverte » (accueil, réglages, invitations…). */
+.ws-channels-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  padding: 44px 22px;
+  text-align: center;
+}
+
+.ws-channels-placeholder-icon {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  color: var(--ws-accent-3);
+  box-shadow: 0 0 26px -12px rgba(121,133,255, 0.8);
+  animation: ws-float 6s var(--ws-ease) infinite;
+}
+
+.ws-channels-placeholder-title {
+  margin: 2px 0 0;
+  color: #f0f6fc;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+/* --- En-tête de catégorie ------------------------------------------------ */
+
+.ws-category {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 10px;
+  padding: 1px 2px 1px 2px;
+}
+
+.ws-category-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b949e;
+  font-size: 13.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--ws-fast) var(--ws-ease), color var(--ws-fast) var(--ws-ease);
+}
+
+.ws-category-toggle:hover {
+  background: rgba(121,133,255, 0.08);
+  color: #b0bac6;
+}
+
+.ws-category-toggle.static {
+  cursor: default;
+  color: #8b949e;
+}
+
+.ws-category-chevron {
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.ws-category-toggle.collapsed .ws-category-chevron {
+  transform: rotate(-90deg);
+}
+
+.ws-category-name {
+  flex-shrink: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-category-desc {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8b949e;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.ws-category-actions {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.ws-category:hover .ws-category-actions,
+.ws-category:focus-within .ws-category-actions {
+  opacity: 1;
+}
+
+/* --- Ligne de salon ------------------------------------------------------ */
+
+.ws-channel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  padding: 0 2px;
+  border-radius: 10px;
+}
+
+.ws-channel::before {
+  content: "";
+  position: absolute;
+  left: -6px;
+  top: 50%;
+  width: 3px;
+  height: 10px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(180deg, var(--ws-accent-3), var(--ws-accent));
+  transform: translateY(-50%);
+  opacity: 0;
+  transition: opacity var(--ws-fast) var(--ws-ease), height var(--ws-medium) var(--ws-ease);
+}
+
+/* Le témoin « pousse » au survol, puis reste ouvert sur le salon actif. */
+.ws-channel:hover::before {
+  height: 18px;
+  opacity: 0.55;
+}
+
+.ws-channel.active::before {
+  height: 28px;
+  opacity: 1;
+}
+
+.ws-channel-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 9px 11px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #8b949e;
+  font-size: 16.5px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--ws-fast) var(--ws-ease), color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease);
+}
+
+.ws-channel-main:hover {
+  background: var(--ws-accent-soft);
+  color: #f0f6fc;
+  transform: translateX(1px);
+}
+
+.ws-channel.active .ws-channel-main {
+  background: linear-gradient(90deg, rgba(88,101,242, 0.26), rgba(88,101,242, 0.05));
+  color: #f0f6fc;
+}
+
+.ws-channel-icon {
+  flex-shrink: 0;
+  color: #8b949e;
+}
+
+.ws-channel.active .ws-channel-icon {
+  color: #7985ff;
+}
+
+.ws-channel-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-channel.unread .ws-channel-name {
+  color: #f0f6fc;
+  font-weight: 600;
+}
+
+.ws-channel-lock {
+  flex-shrink: 0;
+  color: #8b949e;
+}
+
+.ws-channel-more {
+  opacity: 0;
+}
+
+.ws-channel:hover .ws-channel-more,
+.ws-channel:focus-within .ws-channel-more {
+  opacity: 1;
+}
+
+.ws-count-badge {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--ws-danger);
+  color: #f0f6fc;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  animation: ws-pop 0.28s var(--ws-ease);
+  box-shadow: 0 6px 16px -8px rgba(248,81,73, 0.9);
+}
+
+/* --- Panneau utilisateur -------------------------------------------------- */
+
+.ws-user-panel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border-top: 1px solid #30363d;
+  background: #161b22;
+  box-shadow: 0 -18px 40px -38px rgba(0, 0, 0, 0.9);
+}
+
+.ws-user-panel-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ws-user-panel-avatar {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4752c4, #7985ff);
+  color: #f0f6fc;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(121,133,255, 0.22), 0 6px 16px -10px rgba(88,101,242, 0.9);
+}
+
+/* Nom et statut sur la même ligne, alignés verticalement.
+   Le nom est prioritaire : si la barre est trop étroite pour les deux,
+   le statut passe tout seul sur la ligne suivante (jamais de chevauchage,
+   jamais de nom écrasé à 0). */
+.ws-user-panel-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  column-gap: 8px;
+  row-gap: 1px;
+}
+
+.ws-user-panel-name {
+  flex: 1 1 auto;
+  min-width: 5ch;
+  font-size: 15px;
+  font-weight: 600;
+  color: #f0f6fc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-user-panel-status {
+  flex: 0 0 auto;
+  color: #8b949e;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+/* Pastille de présence : posée dans l'angle bas-droit de l'avatar,
+   cerclée de la couleur du fond du panneau pour se détacher du cercle. */
+.ws-user-panel-avatar .ws-presence-dot {
+  right: 0;
+  bottom: 0;
+  width: 13px;
+  height: 13px;
+  border: 2.5px solid #161b22;
+}
+
+.ws-user-panel-controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.ws-user-panel-button {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  transition: background-color var(--ws-fast) var(--ws-ease), color var(--ws-fast) var(--ws-ease);
+}
+
+.ws-user-panel-button:hover {
+  background: rgba(88,101,242, 0.14);
+  color: #f0f6fc;
+}
+
+.ws-user-panel-button.danger {
+  color: #f85149;
+  background: rgba(248,81,73, 0.14);
+}
+
+/* --- Actions compactes (en-têtes, lignes, catégories) --------------------- */
+
+.ws-row-action {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b949e;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color var(--ws-fast) var(--ws-ease), color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease);
+}
+
+.ws-row-action:hover {
+  background: rgba(88,101,242, 0.16);
+  color: #f0f6fc;
+  transform: scale(1.1);
+}
+
+.ws-row-action:active {
+  transform: scale(0.92);
+}
+
+/* ==========================================================================
+   4. Glisser-déposer et menus contextuels
+   ========================================================================== */
+
+.ws-drag-handle {
+  width: 20px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b949e;
+  cursor: grab;
+  flex-shrink: 0;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.ws-category:hover .ws-drag-handle,
+.ws-channel:hover .ws-drag-handle,
+.ws-drag-handle:focus-visible {
+  opacity: 1;
+}
+
+.ws-drag-handle:hover {
+  background: rgba(121,133,255, 0.12);
+  color: #b0bac6;
+}
+
+.ws-drag-handle:active {
+  cursor: grabbing;
+}
+
+/* Élément soulevé pendant le glisser-déposer : il flotte au-dessus de la liste. */
+.ws-dragging {
+  opacity: 0.92;
+  border-radius: 12px;
+  background: #2d333b;
+  box-shadow: 0 22px 46px -22px rgba(13,17,23, 0.95), 0 0 0 1px rgba(121,133,255, 0.28);
+  cursor: grabbing;
+}
+
+.ws-menu {
+  position: fixed;
+  z-index: 300;
+  padding: 7px;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 22px 50px rgba(0, 0, 0, 0.55);
+}
+
+.ws-menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 13px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #b0bac6;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s var(--ws-ease), color 0.12s var(--ws-ease);
+}
+
+.ws-menu-item:hover:not(:disabled) {
+  background: rgba(88,101,242, 0.16);
+  color: #f0f6fc;
+}
+
+.ws-menu-item:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.ws-menu-item-danger {
+  color: #f85149;
+}
+
+.ws-menu-item-danger:hover:not(:disabled) {
+  background: rgba(248,81,73, 0.16);
+  color: #f85149;
+}
+
+.ws-menu-icon {
+  display: inline-flex;
+  align-items: center;
+  color: #8b949e;
+}
+
+.ws-menu-separator {
+  height: 1px;
+  margin: 4px 6px;
+  background: #30363d;
+}
+
+/* ==========================================================================
+   5. Contenu d'un salon et salon vocal
+   ========================================================================== */
+
+.ws-channel-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  min-width: 0;
+}
+
+.ws-channel-view-header {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 16px 18px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+}
+
+.ws-channel-view-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--ws-accent-soft);
+  color: #7985ff;
+  box-shadow: 0 0 24px -10px rgba(88,101,242, 0.9);
+}
+
+.ws-channel-view-title {
+  font-size: 17.5px;
+  font-weight: 650;
+  color: #f0f6fc;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-channel-view-subtitle {
+  margin-top: 2px;
+  color: #8b949e;
+  font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-channel-view-body {
+  min-width: 0;
+  min-height: 0;
+}
+
+.ws-voice-stage {
+  max-width: 820px;
+}
+
+.ws-voice-stage-card {
+  padding: 28px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035), 0 26px 52px -40px rgba(13,17,23, 0.95);
+}
+
+.ws-voice-stage-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.ws-voice-stage-title {
+  font-size: 18px;
+  font-weight: 650;
+}
+
+.ws-voice-participants {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.ws-voice-participant {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  background: #161b22;
+  transition: border-color var(--ws-medium) var(--ws-ease), background-color var(--ws-medium) var(--ws-ease),
+    transform var(--ws-medium) var(--ws-ease);
+}
+
+.ws-voice-participant:hover {
+  border-color: #30363d;
+  background: #161b22;
+  transform: translateY(-1px);
+}
+
+.ws-voice-avatar {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4752c4, #7985ff);
+  color: #f0f6fc;
+  font-size: 15px;
+  font-weight: 700;
+  box-shadow: 0 0 0 2px rgba(121,133,255, 0.18);
+}
+
+.ws-voice-name {
+  flex: 1;
+  min-width: 0;
+  color: #f0f6fc;
+  font-size: 16.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-voice-speaking {
+  color: var(--ws-green);
+  flex-shrink: 0;
+  animation: ws-pulse-soft 1.8s var(--ws-ease) infinite;
+  filter: drop-shadow(0 0 6px rgba(63,185,80, 0.6));
+}
+
+.ws-voice-muted {
+  color: #f85149;
+  flex-shrink: 0;
+}
+
+.ws-voice-actions {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+  margin-top: 16px;
+}
+
+/* ==========================================================================
+   6. Composants partagés
+   ========================================================================== */
+
+/* --- Boutons -------------------------------------------------------------- */
+
+.ws-button {
+  height: 48px;
+  padding: 0 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid #30363d;
+  border-radius: 11px;
+  background: #161b22;
+  color: #b0bac6;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+  transition: background-color var(--ws-fast) var(--ws-ease), border-color var(--ws-fast) var(--ws-ease),
+    color var(--ws-fast) var(--ws-ease), transform var(--ws-fast) var(--ws-ease), box-shadow var(--ws-fast) var(--ws-ease);
+}
+
+.ws-button:hover:not(:disabled) {
+  border-color: #30363d;
+  color: #f0f6fc;
+  box-shadow: 0 12px 24px -18px rgba(13,17,23, 0.9);
+}
+
+.ws-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.ws-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ws-button-primary {
+  border: none;
+  overflow: hidden;
+  background: var(--ws-accent);
+  color: #f0f6fc;
+  box-shadow: 0 10px 26px -14px rgba(88, 101, 242, 0.55);
+  transition: background-color var(--ws-medium) var(--ws-ease), transform var(--ws-fast) var(--ws-ease),
+    box-shadow var(--ws-fast) var(--ws-ease);
+}
+
+.ws-button-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+  box-shadow: 0 16px 32px -14px rgba(88, 101, 242, 0.7);
+}
+
+/* Reflet qui traverse le bouton au survol. */
+.ws-button-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.14) 50%, transparent 60%);
+  transform: translateX(-140%);
+  transition: transform 0.6s var(--ws-ease);
+  pointer-events: none;
+}
+
+.ws-button-primary:hover::after {
+  transform: translateX(140%);
+}
+
+.ws-button-danger {
+  border-color: #5a2a2d;
+  background: #2a1c1f;
+  color: #f85149;
+}
+
+.ws-button-danger:hover:not(:disabled) {
+  border-color: #5a2a2d;
+  color: #f85149;
+  box-shadow: 0 12px 26px -16px rgba(248,81,73, 0.9);
+}
+
+.ws-button-ghost {
+  border-color: transparent;
+  background: transparent;
+}
+
+.ws-button-small {
+  height: 38px;
+  padding: 0 14px;
+  font-size: 14px;
+}
+
+.ws-icon-button {
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+/* --- Cartes et statistiques ---------------------------------------------- */
+
+.ws-card {
+  padding: 22px;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color var(--ws-medium) var(--ws-ease), transform var(--ws-medium) var(--ws-ease),
+    box-shadow var(--ws-medium) var(--ws-ease);
+}
+
+.ws-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.ws-grid-3 {
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+.ws-grid-stats {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 22px;
+}
+
+.ws-stat-label {
+  color: #8b949e;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Les chiffres portent un dégradé discret, dans la teinte d'accent. */
+.ws-stat-value {
+  margin-top: 6px;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  background: #f0f6fc;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-community-card {
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+/* La carte de communauté se soulève légèrement sous le curseur. */
+.ws-community-card:hover {
+  border-color: #30363d;
+  transform: translateY(-3px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 26px 46px -28px rgba(13,17,23, 0.95),
+    0 0 0 1px rgba(88,101,242, 0.16);
+}
+
+.ws-card-title {
+  font-size: 18px;
+  font-weight: 650;
+  color: #f0f6fc;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.ws-card-description {
+  margin-top: 6px;
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.ws-card-footer {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ws-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  color: #8b949e;
+  font-size: 14px;
+  flex-wrap: wrap;
+}
+
+/* --- Badges --------------------------------------------------------------- */
+
+.ws-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid #30363d;
+  border-radius: 999px;
+  background: #161b22;
+  color: #8b949e;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.ws-badge-owner {
+  border-color: #5865f2;
+  color: #7985ff;
+}
+
+.ws-badge-admin {
+  border-color: #30363d;
+  color: #7985ff;
+}
+
+.ws-badge-moderator {
+  border-color: #2c5e43;
+  color: #3fb950;
+}
+
+.ws-badge-member {
+  border-color: #30363d;
+  color: #8b949e;
+}
+
+/* Rôle personnalisé : sa couleur est portée par le style en ligne (le rôle a
+   un champ `color`), cette classe ne pose que le cadre commun. */
+.ws-badge-custom {
+  border-color: #30363d;
+  color: #d2a8ff;
+}
+
+/* --- Sections et états vides --------------------------------------------- */
+
+.ws-section {
+  margin-top: 34px;
+}
+
+.ws-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.ws-section-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+
+/* Trait d'accent avant chaque titre de section. */
+.ws-section-title::before {
+  content: "";
+  width: 3px;
+  height: 15px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--ws-accent-3), var(--ws-accent));
+  box-shadow: 0 0 12px rgba(88,101,242, 0.55);
+}
+
+.ws-empty {
+  padding: 34px 24px;
+  border: 1px dashed #30363d;
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 0%, rgba(88,101,242, 0.07), transparent 68%);
+  color: #8b949e;
+  font-size: 15px;
+  text-align: center;
+  animation: ws-rise var(--ws-slow) var(--ws-ease) both;
+}
+
+/* --- Messages d'état ------------------------------------------------------ */
+
+/* Messages d'état : filet d'accent à gauche, comme une barre de statut. */
+.ws-alert {
+  margin-bottom: 20px;
+  padding: 15px 17px;
+  border: 1px solid #30363d;
+  border-left-width: 3px;
+  border-left-color: #30363d;
+  border-radius: 11px;
+  background: #161b22;
+  color: #b0bac6;
+  font-size: 15px;
+}
+
+.ws-alert-error {
+  border-color: #5a2a2d;
+  border-left-color: var(--ws-danger);
+  background: #2a1c1f;
+  color: #f85149;
+}
+
+.ws-alert-success {
+  border-color: #2c5e43;
+  border-left-color: var(--ws-green);
+  background: #1c2a20;
+  color: #3fb950;
+}
+
+/* --- Formulaires ---------------------------------------------------------- */
+
+.ws-form-group {
+  margin-bottom: 17px;
+}
+
+/* Micro-libellé : capitales espacées, façon outil professionnel. */
+.ws-form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #8b949e;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ws-form-input,
+.ws-form-select,
+.ws-form-textarea {
+  width: 100%;
+  min-height: 54px;
+  padding: 13px 15px;
+  border: 1px solid #30363d;
+  border-radius: 11px;
+  outline: none;
+  background: #161b22;
+  color: #f0f6fc;
+  font-size: 15px;
+  font-family: inherit;
+  caret-color: var(--ws-accent-3);
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    box-shadow var(--ws-fast) var(--ws-ease);
+}
+
+.ws-form-input:hover,
+.ws-form-select:hover,
+.ws-form-textarea:hover {
+  border-color: #30363d;
+}
+
+.ws-form-textarea {
+  min-height: 108px;
+  resize: vertical;
+}
+
+.ws-form-input:focus,
+.ws-form-select:focus,
+.ws-form-textarea:focus {
+  border-color: #5865f2;
+  background: #161b22;
+  box-shadow: 0 0 0 3px rgba(88,101,242, 0.1);
+}
+
+.ws-form-input::placeholder,
+.ws-form-textarea::placeholder {
+  color: #8b949e;
+}
+
+.ws-form-help {
+  margin-top: 6px;
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.ws-form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ws-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  color: #b0bac6;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.ws-checkbox-row input {
+  margin-top: 2px;
+  accent-color: #5865f2;
+}
+
+/* --- Modales -------------------------------------------------------------- */
+
+.ws-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+  background: rgba(13,17,23, 0.72);
+  backdrop-filter: blur(7px) saturate(1.1);
+}
+
+.ws-modal {
+  width: 100%;
+  max-width: 580px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 30px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 30px 76px rgba(0, 0, 0, 0.5);
+}
+
+.ws-modal-wide {
+  max-width: 780px;
+}
+
+.ws-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #30363d;
+}
+
+.ws-modal-title {
+  margin: 0;
+  font-size: 22px;
+  letter-spacing: -0.3px;
+}
+
+.ws-modal-subtitle {
+  margin: 5px 0 0;
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* --- Listes (salons, membres, invitations) -------------------------------- */
+
+.ws-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.ws-list-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 15px 17px;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  background: #161b22;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease);
+}
+
+.ws-list-row:hover {
+  border-color: #30363d;
+  background: #161b22;
+  transform: translateY(-1px);
+}
+
+.ws-list-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ws-list-row-name {
+  font-size: 16.5px;
+  font-weight: 600;
+  color: #f0f6fc;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-list-row-sub {
+  margin-top: 3px;
+  color: #8b949e;
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-list-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* --- Onglets (sélecteur segmenté) ----------------------------------------- */
+
+/* La barre d'onglets se présente comme un contrôle segmenté : une piste
+   encaissée, des segments qui se soulèvent, un actif en relief. */
+.ws-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 5px;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  background: #161b22;
+  box-shadow: inset 0 1px 3px rgba(13,17,23, 0.5);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ws-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.ws-tab {
+  flex-shrink: 0;
+  padding: 11px 18px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  background: transparent;
+  color: #8b949e;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color var(--ws-fast) var(--ws-ease), border-color var(--ws-fast) var(--ws-ease),
+    background-color var(--ws-fast) var(--ws-ease), box-shadow var(--ws-medium) var(--ws-ease),
+    text-shadow var(--ws-medium) var(--ws-ease);
+}
+
+.ws-tab:hover {
+  background: rgba(121,133,255, 0.08);
+  color: #b0bac6;
+}
+
+.ws-tab.active {
+  border-color: #30363d;
+  background: #2d333b;
+  color: #f0f6fc;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* --- Invitations ---------------------------------------------------------- */
+
+.ws-qrcode {
+  width: 260px;
+  height: 260px;
+  margin: 14px auto 6px;
+  display: block;
+  padding: 12px;
+  border-radius: 14px;
+  background: #f0f6fc;
+  box-shadow: 0 18px 40px -22px rgba(0, 0, 0, 0.9);
+}
+
+.ws-invite-link {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.ws-invite-link code {
+  flex: 1;
+  min-width: 0;
+  padding: 13px 15px;
+  border: 1px solid #30363d;
+  border-radius: 11px;
+  background: #161b22;
+  color: #b0bac6;
+  font-size: 15px;
+  font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.01em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- Notifications -------------------------------------------------------- */
+
+/* Le panneau est ancré à la cloche : le composant enveloppe celle-ci dans un
+   bloc positionné, le panneau se déplie donc juste en dessous, aligné à droite. */
+.ws-notifications {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  z-index: 150;
+  width: 430px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding: 18px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.ws-notification {
+  position: relative;
+  padding: 14px 15px;
+  border: 1px solid #30363d;
+  border-radius: 11px;
+  background: #161b22;
+  margin-bottom: 12px;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease);
+}
+
+.ws-notification:hover {
+  border-color: #30363d;
+  transform: translateY(-1px);
+}
+
+.ws-notification.unread {
+  border-color: #5865f2;
+  background: #2d333b;
+}
+
+/* Filet d'accent des notifications non lues. */
+.ws-notification.unread::before {
+  content: "";
+  position: absolute;
+  left: -1px;
+  top: 9px;
+  bottom: 9px;
+  width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, var(--ws-accent-3), var(--ws-accent));
+}
+
+.ws-notification-text {
+  font-size: 15px;
+  color: #f0f6fc;
+  line-height: 1.5;
+}
+
+.ws-notification-date {
+  margin-top: 5px;
+  color: #8b949e;
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   7. Divers
+   ========================================================================== */
+
+.ws-inline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ws-muted {
+  color: #8b949e;
+  font-size: 14.5px;
+  line-height: 1.6;
+}
+
+.ws-code {
+  padding: 2px 6px;
+  border-radius: 8px;
+  background: #161b22;
+  border: 1px solid #30363d;
+  color: #b0bac6;
+  font-size: 14px;
+  font-family: ui-monospace, "Cascadia Mono", "SF Mono", Menlo, Consolas, monospace;
+  letter-spacing: 0.01em;
+}
+
+.ws-loading {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #8b949e;
+  font-size: 16.5px;
+}
+
+/* Rotation des indicateurs de chargement (boutons, panneaux). */
+.dm-spin {
+  animation: dm-spin-rotate 0.9s linear infinite;
+}
+
+@keyframes dm-spin-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ==========================================================================
+   8. Messages privés
+   ========================================================================== */
+
+/* Deux colonnes : la liste des conversations, puis le fil de discussion. */
+.ws-mp-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.ws-mp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 16px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  max-height: 68vh;
+  overflow-y: auto;
+}
+
+.ws-mp-contact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #161b22;
+  color: #f0f6fc;
+  text-align: left;
+  font-size: 15px;
+  cursor: pointer;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease);
+}
+
+.ws-mp-contact:hover {
+  border-color: #30363d;
+  transform: translateX(2px);
+}
+
+.ws-mp-contact.active {
+  border-color: var(--ws-accent);
+  background: #2d333b;
+}
+
+.ws-mp-contact-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ws-mp-contact-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-mp-contact-sub {
+  margin-top: 3px;
+  color: #8b949e;
+  font-size: 13.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ws-mp-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4752c4, #7985ff);
+  color: #f0f6fc;
+  font-size: 15px;
+  font-weight: 700;
+  overflow: hidden;
+}
+
+.ws-mp-thread {
+  display: flex;
+  flex-direction: column;
+  min-height: 540px;
+  max-height: 68vh;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+}
+
+.ws-mp-thread-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #30363d;
+}
+
+.ws-mp-messages {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  overflow-y: auto;
+}
+
+.ws-mp-bubble {
+  align-self: flex-start;
+  max-width: 78%;
+  padding: 13px 16px;
+  border: 1px solid #30363d;
+  border-radius: 14px;
+  background: #161b22;
+  color: #f0f6fc;
+  font-size: 16.5px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.ws-mp-bubble.mine {
+  align-self: flex-end;
+  border-color: #30363d;
+  background: #0d1117;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 14px 30px -24px rgba(13,17,23, 0.95);
+}
+
+.ws-mp-bubble.deleted {
+  border-style: dashed;
+  color: #8b949e;
+  font-style: italic;
+}
+
+.ws-mp-bubble-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 6px;
+  color: #8b949e;
+  font-size: 13px;
+}
+
+.ws-mp-composer {
+  display: flex;
+  gap: 9px;
+  align-items: flex-end;
+  padding: 16px 18px;
+  border-top: 1px solid #30363d;
+}
+
+.ws-mp-input {
+  flex: 1;
+  min-height: 54px;
+  max-height: 150px;
+  resize: vertical;
+}
+
+/* ==========================================================================
+   9. Détails partagés
+   ========================================================================== */
+
+/* Entrée d'un bloc de contenu (page, état vide). */
+@keyframes ws-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Apparition d'un pastillage (compteur de non-lus, badge du rail). */
+@keyframes ws-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.08);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Halo qui se propage (présence en ligne). */
+@keyframes ws-pulse {
+  0% {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+/* Respiration lente (prise de parole en vocal). */
+@keyframes ws-pulse-soft {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Flottement court (illustration d'état vide). */
+@keyframes ws-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Balayage lumineux des squelettes de chargement. */
+@keyframes ws-shimmer {
+  from {
+    background-position: 140% 0;
+  }
+  to {
+    background-position: -140% 0;
+  }
+}
+
+/* Anneau de focus commun à la navigation clavier — les champs gardent leur
+   propre halo d'accent. */
+.ws-discord :focus-visible:not(input):not(textarea):not(select) {
+  outline: 2px solid rgba(121,133,255, 0.7);
+  outline-offset: 2px;
+}
+
+/* Barres de défilement discrètes (Firefox) pour les zones qui défilent. */
+.ws-channels-scroll,
+.ws-notifications,
+.ws-modal,
+.ws-mp-list,
+.ws-mp-messages {
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Infobulles : `data-tip` porte le libellé, affiché au survol et au focus.
+   Réservées aux commandes sans texte (en-tête, panneau utilisateur) : elles
+   remplacent le `title` natif, trop lent et impossible à styler.
+   -------------------------------------------------------------------------- */
+
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 9px);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 260;
+  padding: 7px 11px;
+  border: 1px solid #30363d;
+  border-radius: 10px;
+  background: #161b22;
+  color: #f0f6fc;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 14px 30px rgba(13,17,23, 0.75);
+  transition: opacity var(--ws-fast) var(--ws-ease);
+}
+
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+  opacity: 1;
+}
+
+/* Alignement quand la commande touche un bord de l'écran. */
+[data-tip].ws-tip-start::after {
+  left: 0;
+  transform: none;
+}
+
+[data-tip].ws-tip-end::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* Affichée au-dessus : pour le panneau utilisateur, en bas de colonne. */
+[data-tip].ws-tip-up::after {
+  top: auto;
+  bottom: calc(100% + 9px);
+}
+
+/* Touches clavier : pastille sobre pour les raccourcis. */
+.ws-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border: 1px solid #30363d;
+  border-bottom-width: 2px;
+  border-radius: 8px;
+  background: #161b22;
+  color: #8b949e;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+/* Le raccourci du filtre s'efface dès que le champ prend le focus. */
+.ws-channels-search:focus-within .ws-kbd,
+.ws-channels-search:has(.ws-channels-search-clear) .ws-kbd {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Squelettes de chargement : la structure apparaît avant les données.
+   -------------------------------------------------------------------------- */
+
+.ws-skeletons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+
+.ws-skeleton {
+  height: 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #161b22 0%, #21262d 45%, #161b22 90%);
+  background-size: 200% 100%;
+  animation: ws-shimmer 1.4s linear infinite;
+}
+
+/* ==========================================================================
+   10. Page d'accueil (tableau de bord)
+
+   Le reste de l'espace de travail reste inchangé : ces règles décorent
+   uniquement la page d'accueil (bandeau, tuiles de synthèse, cartes de
+   communautés, listes enrichies, états vides).
+   ========================================================================== */
+
+/* --- Bandeau de pilotage : résumé de l'espace et recherche ---------------- */
+
+.ws-home-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding: 26px 28px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045), 0 30px 60px -48px rgba(13,17,23, 0.95);
+}
+
+/* Halo d'accent en haut à droite et liseré dégradé au bas du bandeau. */
+.ws-home-hero::before {
+  content: "";
+  position: absolute;
+  top: -150px;
+  right: -60px;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(88, 101, 242, 0.12), transparent 65%);
+  pointer-events: none;
+}
+
+.ws-home-hero::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(121, 133, 255, 0.2), transparent);
+  pointer-events: none;
+}
+
+.ws-home-hero-text {
+  position: relative;
+  min-width: 0;
+  max-width: 640px;
+}
+
+.ws-home-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ws-accent-3);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.ws-home-eyebrow::before {
+  content: "";
+  width: 20px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--ws-accent-3), transparent);
+  box-shadow: 0 0 10px rgba(88,101,242, 0.7);
+}
+
+.ws-home-title {
+  margin: 7px 0 0;
+  color: #f0f6fc;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.ws-home-subtitle {
+  margin: 7px 0 0;
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ws-home-hero-side {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.ws-home-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 220px;
+  max-width: 380px;
+  height: 44px;
+  padding: 0 8px 0 14px;
+  border: 1px solid #30363d;
+  border-radius: 11px;
+  background: #161b22;
+  color: #8b949e;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    box-shadow var(--ws-fast) var(--ws-ease);
+}
+
+.ws-home-search:focus-within {
+  border-color: rgba(121,133,255, 0.55);
+  background: #161b22;
+  color: var(--ws-accent-3);
+  box-shadow: 0 0 0 3px rgba(88,101,242, 0.12);
+}
+
+.ws-home-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #f0f6fc;
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.ws-home-search input::placeholder {
+  color: #8b949e;
+}
+
+.ws-home-search-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 9px;
+  background: var(--ws-accent-soft);
+  color: #7985ff;
+  cursor: pointer;
+  transition: background-color var(--ws-fast) var(--ws-ease), color var(--ws-fast) var(--ws-ease);
+}
+
+.ws-home-search-clear:hover {
+  background: rgba(88,101,242, 0.26);
+  color: #f0f6fc;
+}
+
+/* --- Tuiles de synthèse --------------------------------------------------- */
+
+.ws-home-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.ws-home-tile {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  transition: border-color var(--ws-medium) var(--ws-ease), box-shadow var(--ws-medium) var(--ws-ease);
+}
+
+.ws-home-tile::after {
+  content: "";
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(88, 101, 242, 0.08), transparent 70%);
+  pointer-events: none;
+}
+
+.ws-home-tile:hover {
+  border-color: #30363d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 26px 46px -34px rgba(13,17,23, 0.95);
+}
+
+.ws-home-tile-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid rgba(121,133,255, 0.24);
+  border-radius: 13px;
+  background: var(--ws-accent-soft);
+  color: var(--ws-accent-3);
+  box-shadow: inset 0 0 14px rgba(88,101,242, 0.16);
+}
+
+.ws-home-tile-body {
+  position: relative;
+  min-width: 0;
+}
+
+.ws-home-tile-label {
+  color: #8b949e;
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ws-home-tile-value {
+  margin-top: 2px;
+  color: #f0f6fc;
+  font-size: 30px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-home-tile-caption {
+  margin-top: 3px;
+  color: #8b949e;
+  font-size: 13.5px;
+}
+
+/* --- Cartes des communautés ----------------------------------------------- */
+
+.ws-home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.ws-home-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid #30363d;
+  border-radius: 16px;
+  background: #161b22;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  cursor: pointer;
+  transition: border-color var(--ws-medium) var(--ws-ease), box-shadow var(--ws-medium) var(--ws-ease);
+}
+
+.ws-home-card::after {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(88, 101, 242, 0.1), transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--ws-medium) var(--ws-ease);
+}
+
+.ws-home-card:hover {
+  border-color: #30363d;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 30px 54px -34px rgba(13,17,23, 0.95),
+    0 0 0 1px rgba(88,101,242, 0.16);
+}
+
+.ws-home-card:hover::after {
+  opacity: 1;
+}
+
+.ws-home-card-top {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+/* Pastille d'identité : initiales colorées, ou icône téléversée le cas échéant. */
+.ws-home-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4752c4, #7985ff);
+  color: #f0f6fc;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 10px 22px -12px rgba(13,17,23, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.ws-home-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Variantes du badge de type, dans le même esprit que les badges de rôle. */
+.ws-home-badge-public {
+  border-color: #2c5e43;
+  color: #3fb950;
+}
+
+.ws-home-badge-private {
+  border-color: #5c4a22;
+  color: #d29922;
+}
+
+.ws-home-badge-system {
+  border-color: #5865f2;
+  color: #7985ff;
+}
+
+.ws-home-card-name {
+  position: relative;
+  margin: 0;
+  color: #f0f6fc;
+  font-size: 18px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Deux lignes de description réservées : les cartes restent alignées. */
+.ws-home-card-desc {
+  position: relative;
+  margin: 0;
+  min-height: 44px;
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.55;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.ws-home-card-foot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid #30363d;
+}
+
+.ws-home-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #8b949e;
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-home-card-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  color: var(--ws-accent-3);
+  font-size: 14px;
+  font-weight: 650;
+  opacity: 0.72;
+  transition: opacity var(--ws-fast) var(--ws-ease), gap var(--ws-fast) var(--ws-ease);
+}
+
+.ws-home-card:hover .ws-home-card-open {
+  opacity: 1;
+  gap: 10px;
+}
+
+/* --- Lignes enrichies (découverte, messages privés) ----------------------- */
+
+.ws-home-row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 1px solid rgba(121,133,255, 0.2);
+  border-radius: 13px;
+  background: var(--ws-accent-soft);
+  color: var(--ws-accent-3);
+}
+
+.ws-home-row-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ws-home-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid #30363d;
+  border-radius: 999px;
+  background: #161b22;
+  color: #8b949e;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.ws-home-row-when {
+  color: #8b949e;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Bandeau d'actions aligné à droite, sous les listes. */
+.ws-home-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+/* --- États vides soignés --------------------------------------------------- */
+
+.ws-home-empty {
+  padding: 34px 24px;
+  border: 1px dashed #30363d;
+  border-radius: 16px;
+  background: radial-gradient(circle at 50% 0%, rgba(88,101,242, 0.09), transparent 70%);
+  text-align: center;
+}
+
+.ws-home-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(121,133,255, 0.24);
+  border-radius: 15px;
+  background: var(--ws-accent-soft);
+  color: var(--ws-accent-3);
+  box-shadow: 0 0 26px -10px rgba(88,101,242, 0.9);
+}
+
+.ws-home-empty-title {
+  margin-top: 14px;
+  color: #f0f6fc;
+  font-size: 17px;
+  font-weight: 650;
+}
+
+.ws-home-empty-text {
+  max-width: 460px;
+  margin: 6px auto 0;
+  color: #8b949e;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ws-home-empty-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* --- Filtre intégré à l'en-tête de section -------------------------------- */
+
+.ws-section-header .ws-tabs {
+  margin-bottom: 0;
+}
+
+/* --- Squelettes propres à l'accueil --------------------------------------- */
+
+.ws-home-skel-card {
+  height: 210px;
+  border-radius: 16px;
+}
+
+.ws-home-skel-row {
+  height: 84px;
+  border-radius: 12px;
+}
+
+/* --- Colonnes : communautés à gauche, messages et activité à droite ------- */
+
+.ws-home-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 396px;
+  gap: 26px;
+  align-items: start;
+}
+
+.ws-home-main {
+  min-width: 0;
+}
+
+/* Les panneaux suivent la lecture sans quitter l'écran. */
+.ws-home-aside {
+  position: sticky;
+  top: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 34px;
+}
+
+.ws-home-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+}
+
+.ws-home-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ws-home-panel-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #f0f6fc;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.2px;
+}
+
+.ws-home-panel-title > svg {
+  color: var(--ws-accent-3);
+}
+
+.ws-home-panel-empty {
+  margin: 0;
+  padding: 18px 14px;
+  border: 1px dashed #30363d;
+  border-radius: 12px;
+  color: #8b949e;
+  font-size: 14px;
+  text-align: center;
+}
+
+.ws-home-panel-foot {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Dans la modale, le champ de recherche prend toute la largeur disponible. */
+.ws-modal .ws-home-search {
+  max-width: none;
+}
+
+/* --- Liste des conversations privées -------------------------------------- */
+
+.ws-dm-tabs {
+  margin-bottom: 0;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.ws-dm-tabs .ws-tab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 10px;
+  border-radius: 9px;
+  font-size: 13.5px;
+}
+
+.ws-dm-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 330px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
+}
+
+.ws-dm-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color var(--ws-fast) var(--ws-ease), border-color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease);
+}
+
+.ws-dm-row:hover {
+  border-color: #30363d;
+  background: #161b22;
+  transform: translateX(2px);
+}
+
+.ws-dm-row.unread .ws-dm-preview {
+  color: #b0bac6;
+  font-weight: 600;
+}
+
+/* Conteneur d'avatar : la pastille de présence se pose dans l'angle. */
+.ws-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+.ws-presence-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2.5px solid #161b22;
+  background: #343b4a;
+}
+
+.ws-presence-online {
+  background: #3fb950;
+  animation: ws-presence-pulse 2.4s var(--ws-ease) infinite;
+}
+
+.ws-presence-away {
+  background: #d29922;
+  box-shadow: 0 0 10px rgba(245, 181, 63, 0.55);
+}
+
+.ws-presence-busy {
+  background: #f85149;
+  box-shadow: 0 0 10px rgba(242, 85, 90, 0.55);
+}
+
+.ws-presence-offline {
+  background: #343b4a;
+}
+
+@keyframes ws-presence-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(63,185,80, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(63,185,80, 0);
+  }
+}
+
+.ws-dm-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ws-dm-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.ws-dm-line .ws-home-row-when {
+  flex-shrink: 0;
+}
+
+.ws-dm-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #f0f6fc;
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.ws-dm-preview {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #8b949e;
+  font-size: 14px;
+}
+
+/* --- Flux d'activité (notifications récentes) ----------------------------- */
+
+.ws-activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 330px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
+}
+
+.ws-activity-item {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 13px;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  background: #161b22;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease),
+    transform var(--ws-fast) var(--ws-ease);
+}
+
+.ws-activity-item:hover {
+  border-color: #30363d;
+  background: #161b22;
+  transform: translateY(-1px);
+}
+
+.ws-activity-item.unread {
+  border-color: #5865f2;
+}
+
+.ws-activity-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(121,133,255, 0.18);
+  border-radius: 10px;
+  background: rgba(88,101,242, 0.12);
+  color: var(--ws-accent-3);
+}
+
+.ws-activity-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ws-activity-title {
+  color: #f0f6fc;
+  font-size: 15px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-activity-text {
+  color: #8b949e;
+  font-size: 13.5px;
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ws-activity-meta {
+  color: #8b949e;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ws-activity-dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: var(--ws-danger);
+  box-shadow: 0 0 8px rgba(248,81,73, 0.8);
+}
+
+/* --- Sélecteur de contact (modale « Nouvelle conversation ») -------------- */
+
+.ws-contact-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 340px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
+}
+
+.ws-contact-row {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 13px;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  background: #161b22;
+  transition: border-color var(--ws-fast) var(--ws-ease), background-color var(--ws-fast) var(--ws-ease);
+}
+
+.ws-contact-row:hover {
+  border-color: #30363d;
+  background: #161b22;
+}
+
+.ws-contact-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.ws-contact-name {
+  color: #f0f6fc;
+  font-size: 15.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ws-contact-sub {
+  margin-top: 2px;
+  color: #8b949e;
+  font-size: 13.5px;
+}
+
+/* Lignes hautes : cartes et conversations pendant le chargement. */
+.ws-skeleton-tall {
+  height: 46px;
+  border-radius: 12px;
+}
+
+@media (max-width: 900px) {
+  .ws-home-hero {
+    padding: 22px;
+  }
+
+  .ws-home-title {
+    font-size: 21px;
+  }
+
+  .ws-home-hero-side {
+    justify-content: flex-start;
+  }
+
+  .ws-home-search {
+    max-width: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .ws-home-hero {
+    padding: 18px;
+  }
+
+  .ws-home-stats,
+  .ws-home-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ==========================================================================
+   11. Adaptation aux petits écrans
+   ========================================================================== */
+
+@media (max-width: 1080px) {
+  .ws-discord-side {
+    width: 260px;
+    min-width: 260px;
+  }
+
+  .ws-discord-content {
+    padding: 26px 26px 56px;
+  }
+
+  .ws-home-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ws-home-aside {
+    position: static;
+    top: auto;
+    margin-top: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    align-items: start;
+  }
+}
+
+@media (max-width: 900px) {
+  /* La colonne des salons devient un tiroir : le burger de l'en-tête l'ouvre. */
+  .ws-discord-side {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    width: 320px;
+    min-width: 0;
+    transform: translateX(-104%);
+    transition: transform var(--ws-medium) var(--ws-ease);
+    z-index: 60;
+  }
+
+  .ws-discord-side.open {
+    transform: translateX(0);
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.55);
+  }
+
+  .ws-drawer-backdrop {
+    display: block;
+  }
+
+  .ws-discord-burger {
+    display: inline-flex;
+  }
+
+  .ws-discord-header {
+    padding: 0 20px;
+  }
+
+  .ws-discord-content {
+    padding: 22px 20px 52px;
+  }
+
+  .ws-discord-banner {
+    padding: 14px 18px 0;
+  }
+
+  .ws-mp-layout {
+    grid-template-columns: 270px 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .ws-rail {
+    width: 68px;
+    min-width: 68px;
+  }
+
+  .ws-rail-item {
+    width: 48px;
+    height: 48px;
+  }
+
+  .ws-discord-header-title {
+    font-size: 18.5px;
+  }
+
+  .ws-home-panel {
+    padding: 16px;
+  }
+
+  .ws-home-aside {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ws-mp-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .ws-mp-list {
+    max-height: 44vh;
+  }
+
+  .ws-notifications {
+    right: -6px;
+    left: auto;
+    width: min(430px, calc(100vw - 24px));
+  }
+
+  .ws-info-panel {
+    left: 12px;
+    right: 12px;
+    width: auto;
+  }
+}
+
+/* Sur écran tactile, il n'y a pas de survol : les actions restent visibles. */
+@media (hover: none) {
+  .ws-category-actions,
+  .ws-channel-more,
+  .ws-drag-handle {
+    opacity: 1;
+  }
+
+  /* Pas de survol sur écran tactile : les infobulles resteraient affichées. */
+  [data-tip]::after {
+    display: none;
+  }
+}
+
+/* Mouvement réduit : les transitions et animations décoratives tombent, la
+   fonction (glisser-déposer, indicateurs) reste intacte. */
+@media (prefers-reduced-motion: reduce) {
+  .ws-discord-side,
+  .ws-category-chevron,
+  .ws-channel::before,
+  .ws-category-actions,
+  .ws-drag-handle {
+    transition: none;
+  }
+
+  .ws-discord-content > *,
+  .ws-empty,
+  .ws-count-badge,
+  .ws-rail-badge,
+  .ws-channels-placeholder-icon,
+  .ws-voice-speaking,
+  .ws-presence-online,
+  .ws-skeleton {
+    animation: none;
+  }
+
+  .dm-spin {
+    animation-duration: 1.6s;
+  }
+}

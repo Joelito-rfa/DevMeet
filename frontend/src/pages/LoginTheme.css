@@ -1,0 +1,1088 @@
+/* --------------------------------------------------------------------------
+   8 thèmes dynamiques pour les pages Login / Register.
+   Chaque thème applique une palette et une direction d'animation sur le
+   panneau .dm-login-intro via des variables CSS ; le formulaire reste
+   indépendant pour garantir la lisibilité. Les choix visuels ne sont pas
+   uniquement listés : chaque thème déclenche aussi un mode de couches
+   (classic, aurora, wave, ring) qui change les shapes animés.
+   -------------------------------------------------------------------------- */
+
+/* Palette de base : le texte utilise la même famille de couleurs claires sur
+   tous les thèmes. L'accent du thème (--theme-accent) est injecté par
+   AuthShowcase et piloté par le sélecteur. */
+
+/* Sélecteur de thème */
+
+.dm-login-theme-picker {
+  position: absolute;
+  right: 28px;
+  bottom: 24px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(9, 18, 40, 0.78);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(99, 102, 241, 0.18);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+}
+
+.dm-login-theme-picker-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  color: #7f8ca8;
+}
+
+.dm-login-theme-picker-row {
+  display: flex;
+  gap: 8px;
+}
+
+.dm-login-theme-chip {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dm-login-theme-chip:hover {
+  transform: translateY(-2px) scale(1.08);
+}
+
+.dm-login-theme-chip[aria-pressed="true"] {
+  border-color: rgba(255, 255, 255, 0.85);
+  transform: translateY(-2px) scale(1.08);
+}
+
+.dm-login-theme-swatch {
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--theme-accent);
+  box-shadow: 0 0 10px var(--theme-accent);
+}
+
+/* Indicateurs de thème actif : petit trait sous le bouton sélectionné. */
+
+.dm-login-theme-chip--neon[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(165, 180, 252, 0.4);
+}
+
+.dm-login-theme-chip--sunset[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(249, 168, 212, 0.4);
+}
+
+.dm-login-theme-chip--ocean[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(103, 232, 249, 0.4);
+}
+
+.dm-login-theme-chip--forest[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(110, 231, 183, 0.4);
+}
+
+.dm-login-theme-chip--aurora[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(192, 132, 252, 0.4);
+}
+
+.dm-login-theme-chip--ember[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(251, 191, 36, 0.4);
+}
+
+.dm-login-theme-chip--frost[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(147, 197, 253, 0.4);
+}
+
+.dm-login-theme-chip--cosmic[aria-pressed="true"] .dm-login-theme-swatch {
+  box-shadow: 0 0 14px var(--theme-accent), 0 0 26px rgba(196, 181, 253, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Thème par défaut (neon). Appliqué directement sur le panneau. Les
+   signatures colorées des couches animées respectent la palette, sans toucher
+   aux zones de saisie ni aux boutons.
+   -------------------------------------------------------------------------- */
+
+.dm-login-intro {
+  --theme-accent: #a5b4fc;
+  --theme-accent-strong: #7c6cff;
+  --theme-text: #ffffff;
+  --theme-sub: #94a3bd;
+  --aurora-border: rgba(129, 140, 248, 0.18);
+  --aurora-tint: rgba(255, 255, 255, 0.04);
+  --grid-color: rgba(148, 163, 184, 0.08);
+  --spark-color: #a5b4fc;
+  --spark-glow: rgba(165, 180, 252, 0.85);
+}
+
+/* Aurores : 4 blobs dont les couleurs suivent le thème. */
+
+.dm-login-aurora {
+  --aurora-1-color: rgba(99, 102, 241, 0.26);
+  --aurora-2-color: rgba(139, 92, 246, 0.20);
+  --aurora-3-color: rgba(56, 189, 248, 0.12);
+  --aurora-4-color: rgba(99, 102, 241, 0.16);
+}
+
+.dm-login-aurora-blob--a {
+  background: radial-gradient(circle, var(--aurora-1-color), transparent 66%);
+}
+
+.dm-login-aurora-blob--b {
+  background: radial-gradient(circle, var(--aurora-2-color), transparent 68%);
+}
+
+.dm-login-aurora-blob--c {
+  background: radial-gradient(circle, var(--aurora-3-color), transparent 70%);
+}
+
+.dm-login-aurora-blob--d {
+  background: radial-gradient(circle, var(--aurora-4-color), transparent 68%);
+}
+
+/* Faisceau lumineux du titre. */
+
+.dm-login-sheen {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(165, 180, 252, 0.05) 34%,
+    rgba(226, 232, 240, 0.12) 50%,
+    rgba(129, 140, 248, 0.06) 66%,
+    transparent 100%
+  );
+}
+
+/* Grille filigrane. */
+
+.dm-login-grid {
+  background-image:
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  -webkit-mask-image: radial-gradient(circle at 36% 34%, #000 0%, transparent 74%);
+  mask-image: radial-gradient(circle at 36% 34%, #000 0%, transparent 74%);
+}
+
+/* Poussières lumineuses. */
+
+.dm-login-sparkles span {
+  background: var(--spark-color);
+  box-shadow: 0 0 8px var(--spark-glow);
+}
+
+/* Halo conique autour de l'illustration. */
+
+.dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(99, 102, 241, 0) 0deg,
+    rgba(165, 180, 252, 0.8) 34deg,
+    rgba(56, 189, 248, 0.45) 64deg,
+    rgba(139, 92, 246, 0) 110deg,
+    rgba(139, 92, 246, 0) 238deg,
+    rgba(124, 108, 255, 0.55) 288deg,
+    rgba(99, 102, 241, 0) 332deg
+  );
+}
+
+/* Anneaux orbitaux, pont et satellite. */
+
+.dm-login-ring {
+  border-color: rgba(129, 140, 248, 0.2);
+  box-shadow: inset 0 0 24px rgba(99, 102, 241, 0.14);
+}
+
+.dm-login-ring::after {
+  background: #c7d2fe;
+  box-shadow: 0 0 12px rgba(199, 210, 254, 0.9);
+}
+
+.dm-login-ring--b {
+  border-color: rgba(103, 232, 249, 0.16);
+}
+
+.dm-login-ring--b::after {
+  background: #67e8f9;
+  box-shadow: 0 0 12px rgba(103, 232, 249, 0.9);
+}
+
+.dm-login-orbit-ring {
+  border-color: rgba(129, 140, 248, 0.16);
+}
+
+.dm-login-orbit-dot::after {
+  background: #a5b4fc;
+  box-shadow: 0 0 12px rgba(165, 180, 252, 0.9);
+}
+
+.dm-login-orbit-dot--b::after {
+  background: #67e8f9;
+  box-shadow: 0 0 10px rgba(103, 232, 249, 0.9);
+}
+
+.dm-login-orbit-arc {
+  background: conic-gradient(
+    from 0deg,
+    rgba(129, 140, 248, 0) 0deg,
+    rgba(165, 180, 252, 0.5) 46deg,
+    rgba(103, 232, 249, 0.32) 76deg,
+    rgba(129, 140, 248, 0) 122deg,
+    rgba(129, 140, 248, 0) 360deg
+  );
+}
+
+/* Ondes lumineuses. */
+
+.dm-login-ripple {
+  border-color: rgba(129, 140, 248, 0.3);
+}
+
+.dm-login-ripple--b {
+  border-color: rgba(103, 232, 249, 0.24);
+}
+
+.dm-login-ripple--c {
+  border-color: rgba(196, 181, 253, 0.30);
+}
+
+.dm-login-ripple--d {
+  border-color: rgba(139, 92, 246, 0.26);
+}
+
+/* Faisceau vertical entre les deux panneaux. */
+
+.dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(129, 140, 248, 0.85) 45%,
+    rgba(103, 232, 249, 0.55) 55%,
+    transparent
+  );
+}
+
+/* Halo de l'illustration. */
+
+.dm-login-art::before {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.20), transparent 68%);
+  filter: blur(6px);
+}
+
+/* Anneaux orbitaux cosmiques (thème ring). */
+
+.dm-login-ring--c {
+  border-color: rgba(196, 181, 253, 0.20);
+}
+
+.dm-login-ring--c::after {
+  background: #c4b5fd;
+  box-shadow: 0 0 14px rgba(196, 181, 253, 0.9);
+}
+
+.dm-login-ring--d {
+  border-color: rgba(139, 92, 246, 0.16);
+}
+
+.dm-login-ring--d::after {
+  background: #8b5cf6;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.9);
+}
+
+.dm-login-orbit-dot--accent::after {
+  background: var(--theme-accent);
+  box-shadow: 0 0 12px var(--theme-accent);
+}
+
+/* --------------------------------------------------------------------------
+   Signatures des 8 thèmes.
+   -------------------------------------------------------------------------- */
+
+/* 1 — Néon (indigo). Thème de base, stable. */
+
+.dm-login-intro--neon {
+  --theme-accent: #a5b4fc;
+  --theme-accent-strong: #7c6cff;
+  --theme-text: #ffffff;
+  --theme-sub: #94a3bd;
+  --aurora-border: rgba(129, 140, 248, 0.18);
+  --aurora-tint: rgba(255, 255, 255, 0.04);
+  --grid-color: rgba(148, 163, 184, 0.08);
+  --spark-color: #a5b4fc;
+  --spark-glow: rgba(165, 180, 252, 0.85);
+}
+
+.dm-login-intro--neon .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--neon {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(165, 180, 252, 0.05) 34%,
+    rgba(226, 232, 240, 0.12) 50%,
+    rgba(129, 140, 248, 0.06) 66%,
+    transparent 100%
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--neon .dm-login-grid,
+.dm-login-grid.dm-login-grid--neon {
+  --grid-color: rgba(148, 163, 184, 0.08);
+}
+
+.dm-login-intro--neon .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--neon {
+  --spark-color: #a5b4fc;
+  --spark-glow: rgba(165, 180, 252, 0.85);
+}
+
+.dm-login-intro--neon .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(99, 102, 241, 0) 0deg,
+    rgba(165, 180, 252, 0.8) 34deg,
+    rgba(56, 189, 248, 0.45) 64deg,
+    rgba(139, 92, 246, 0) 110deg,
+    rgba(139, 92, 246, 0) 238deg,
+    rgba(124, 108, 255, 0.55) 288deg,
+    rgba(99, 102, 241, 0) 332deg
+  );
+}
+
+.dm-login-intro--neon .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(129, 140, 248, 0.85) 45%,
+    rgba(103, 232, 249, 0.55) 55%,
+    transparent
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--neon .dm-login-art--neon {
+  --art-glow: rgba(99, 102, 241, 0.20);
+}
+
+.dm-login-intro--neon .dm-login-art--neon::before {
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.20), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--neon .dm-login-halo.ease-in-out {
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--neon .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* 2 — Coucher de soleil (rose / violet chaud). */
+
+.dm-login-intro--sunset {
+  --theme-accent: #f9a8d4;
+  --theme-accent-strong: #c084fc;
+  --theme-text: #ffffff;
+  --theme-sub: #e9c8e6;
+  --aurora-border: rgba(244, 114, 182, 0.30);
+  --aurora-tint: rgba(255, 240, 220, 0.05);
+  --grid-color: rgba(244, 114, 182, 0.10);
+  --spark-color: #f9a8d4;
+  --spark-glow: rgba(249, 168, 212, 0.9);
+}
+
+.dm-login-intro--sunset .dm-login-aurora {
+  --aurora-1-color: rgba(244, 114, 182, 0.28);
+  --aurora-2-color: rgba(192, 132, 252, 0.22);
+  --aurora-3-color: rgba(251, 146, 60, 0.13);
+  --aurora-4-color: rgba(244, 114, 182, 0.18);
+}
+
+.dm-login-intro--sunset .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--sunset {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 200, 230, 0.08) 34%,
+    rgba(255, 220, 160, 0.14) 50%,
+    rgba(255, 180, 200, 0.07) 66%,
+    transparent 100%
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--sunset .dm-login-grid,
+.dm-login-grid.dm-login-grid--sunset {
+  --grid-color: rgba(244, 114, 182, 0.10);
+}
+
+.dm-login-intro--sunset .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--sunset {
+  --spark-color: #f9a8d4;
+  --spark-glow: rgba(249, 168, 212, 0.9);
+}
+
+.dm-login-intro--sunset .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(244, 114, 182, 0) 0deg,
+    rgba(255, 180, 200, 0.8) 34deg,
+    rgba(251, 146, 60, 0.5) 64deg,
+    rgba(192, 132, 252, 0) 110deg,
+    rgba(192, 132, 252, 0) 238deg,
+    rgba(236, 72, 153, 0.55) 288deg,
+    rgba(244, 114, 182, 0) 332deg
+  );
+}
+
+.dm-login-intro--sunset .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 180, 200, 0.85) 45%,
+    rgba(251, 146, 60, 0.60) 55%,
+    transparent
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--sunset .dm-login-art--sunset {
+  --art-glow: rgba(244, 114, 182, 0.22);
+}
+
+.dm-login-intro--sunset .dm-login-art--sunset::before {
+  background: radial-gradient(circle, rgba(244, 114, 182, 0.22), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--sunset .dm-login-halo {
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--sunset .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* 3 — Océan (cyan / bleu). Siège à tunes d'aurore horizontales. */
+
+.dm-login-intro--ocean {
+  --theme-accent: #67e8f9;
+  --theme-accent-strong: #0ea5e9;
+  --theme-text: #ffffff;
+  --theme-sub: #a5d8ef;
+  --aurora-border: rgba(14, 165, 233, 0.30);
+  --aurora-tint: rgba(255, 255, 255, 0.05);
+  --grid-color: rgba(14, 165, 233, 0.10);
+  --spark-color: #67e8f9;
+  --spark-glow: rgba(103, 232, 249, 0.9);
+}
+
+.dm-login-intro--ocean .dm-login-aurora,
+.dm-login-aurora--aurora {
+  --aurora-1-color: rgba(14, 165, 233, 0.24);
+  --aurora-2-color: rgba(6, 182, 212, 0.18);
+  --aurora-3-color: rgba(99, 102, 241, 0.12);
+  --aurora-4-color: rgba(14, 165, 233, 0.16);
+}
+
+.dm-login-intro--ocean .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--ocean {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(150, 230, 255, 0.08) 34%,
+    rgba(200, 240, 255, 0.12) 50%,
+    rgba(120, 220, 255, 0.08) 66%,
+    transparent 100%
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--ocean .dm-login-grid,
+.dm-login-grid.dm-login-grid--ocean {
+  --grid-color: rgba(14, 165, 233, 0.10);
+}
+
+.dm-login-intro--ocean .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--ocean {
+  --spark-color: #67e8f9;
+  --spark-glow: rgba(103, 232, 249, 0.9);
+}
+
+.dm-login-intro--ocean .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(14, 165, 233, 0) 0deg,
+    rgba(150, 230, 255, 0.8) 34deg,
+    rgba(99, 102, 241, 0.5) 64deg,
+    rgba(103, 232, 249, 0) 110deg,
+    rgba(103, 232, 249, 0) 238deg,
+    rgba(14, 165, 233, 0.55) 288deg,
+    rgba(14, 165, 233, 0) 332deg
+  );
+}
+
+.dm-login-intro--ocean .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(150, 230, 255, 0.85) 45%,
+    rgba(99, 102, 241, 0.60) 55%,
+    transparent
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--ocean .dm-login-art--ocean {
+  --art-glow: rgba(14, 165, 233, 0.24);
+}
+
+.dm-login-intro--ocean .dm-login-art--ocean::before {
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.24), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--ocean .dm-login-halo {
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--ocean .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* 4 — Forêt (vert / smaragde). Aurore horizontale, grille en sens inverse. */
+
+.dm-login-intro--forest {
+  --theme-accent: #6ee7b7;
+  --theme-accent-strong: #10b981;
+  --theme-text: #ffffff;
+  --theme-sub: #bbf7d0;
+  --aurora-border: rgba(16, 185, 129, 0.30);
+  --aurora-tint: rgba(255, 255, 255, 0.05);
+  --grid-color: rgba(16, 185, 129, 0.10);
+  --spark-color: #6ee7b7;
+  --spark-glow: rgba(110, 231, 183, 0.9);
+}
+
+.dm-login-intro--forest .dm-login-aurora,
+.dm-login-aurora--aurora {
+  --aurora-1-color: rgba(16, 185, 129, 0.24);
+  --aurora-2-color: rgba(52, 211, 153, 0.18);
+  --aurora-3-color: rgba(165, 243, 203, 0.13);
+  --aurora-4-color: rgba(16, 185, 129, 0.16);
+}
+
+.dm-login-intro--forest .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--forest {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(180, 250, 210, 0.08) 34%,
+    rgba(220, 255, 235, 0.12) 50%,
+    rgba(140, 240, 190, 0.08) 66%,
+    transparent 100%
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--forest .dm-login-grid,
+.dm-login-grid.dm-login-grid--forest {
+  --grid-color: rgba(16, 185, 129, 0.10);
+}
+
+.dm-login-intro--forest .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--forest {
+  --spark-color: #6ee7b7;
+  --spark-glow: rgba(110, 231, 183, 0.9);
+}
+
+.dm-login-intro--forest .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(16, 185, 129, 0) 0deg,
+    rgba(180, 250, 210, 0.8) 34deg,
+    rgba(52, 211, 153, 0.5) 64deg,
+    rgba(110, 231, 183, 0) 110deg,
+    rgba(110, 231, 183, 0) 238deg,
+    rgba(16, 185, 129, 0.55) 288deg,
+    rgba(16, 185, 129, 0) 332deg
+  );
+}
+
+.dm-login-intro--forest .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(180, 250, 210, 0.85) 45%,
+    rgba(52, 211, 153, 0.60) 55%,
+    transparent
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--forest .dm-login-art--forest {
+  --art-glow: rgba(16, 185, 129, 0.24);
+}
+
+.dm-login-intro--forest .dm-login-art--forest::before {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.24), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--forest .dm-login-halo {
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--forest .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* 5 — Aurore (violet / magenta). Couche aurora enrichie, grille normale. */
+
+.dm-login-intro--aurora {
+  --theme-accent: #c084fc;
+  --theme-accent-strong: #a855f7;
+  --theme-text: #ffffff;
+  --theme-sub: #d8b4fe;
+  --aurora-border: rgba(168, 85, 247, 0.32);
+  --aurora-tint: rgba(255, 245, 255, 0.06);
+  --grid-color: rgba(168, 85, 247, 0.11);
+  --spark-color: #c084fc;
+  --spark-glow: rgba(192, 132, 252, 0.9);
+}
+
+.dm-login-intro--aurora .dm-login-aurora,
+.dm-login-aurora--aurora {
+  --aurora-1-color: rgba(168, 85, 247, 0.28);
+  --aurora-2-color: rgba(236, 72, 153, 0.20);
+  --aurora-3-color: rgba(59, 130, 246, 0.15);
+  --aurora-4-color: rgba(168, 85, 247, 0.18);
+}
+
+.dm-login-intro--aurora .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--aurora {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(220, 170, 255, 0.09) 34%,
+    rgba(255, 205, 240, 0.13) 50%,
+    rgba(200, 150, 255, 0.09) 66%,
+    transparent 100%
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--aurora .dm-login-grid,
+.dm-login-grid.dm-login-grid--aurora {
+  --grid-color: rgba(168, 85, 247, 0.11);
+}
+
+.dm-login-intro--aurora .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--aurora {
+  --spark-color: #c084fc;
+  --spark-glow: rgba(192, 132, 252, 0.9);
+}
+
+.dm-login-intro--aurora .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(168, 85, 247, 0) 0deg,
+    rgba(220, 170, 255, 0.8) 34deg,
+    rgba(236, 72, 153, 0.5) 64deg,
+    rgba(59, 130, 246, 0) 110deg,
+    rgba(59, 130, 246, 0) 238deg,
+    rgba(168, 85, 247, 0.55) 288deg,
+    rgba(168, 85, 247, 0) 332deg
+  );
+}
+
+.dm-login-intro--aurora .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(220, 170, 255, 0.85) 45%,
+    rgba(236, 72, 153, 0.60) 55%,
+    transparent
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--aurora .dm-login-art--aurora {
+  --art-glow: rgba(168, 85, 247, 0.28);
+}
+
+.dm-login-intro--aurora .dm-login-art--aurora::before {
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.28), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--aurora .dm-login-halo {
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--aurora .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* 6 — Braise (orange / feu). Couche onde lumineuse ondulante. */
+
+.dm-login-intro--ember {
+  --theme-accent: #fbbf24;
+  --theme-accent-strong: #f97316;
+  --theme-text: #ffffff;
+  --theme-sub: #fde68a;
+  --aurora-border: rgba(251, 146, 60, 0.30);
+  --aurora-tint: rgba(255, 240, 200, 0.05);
+  --grid-color: rgba(251, 146, 60, 0.10);
+  --spark-color: #fbbf24;
+  --spark-glow: rgba(251, 191, 36, 0.9);
+}
+
+.dm-login-intro--ember .dm-login-aurora,
+.dm-login-aurora--wave {
+  --aurora-1-color: rgba(251, 146, 60, 0.24);
+  --aurora-2-color: rgba(249, 115, 22, 0.20);
+  --aurora-3-color: rgba(234, 179, 8, 0.14);
+  --aurora-4-color: rgba(251, 146, 60, 0.16);
+}
+
+.dm-login-intro--ember .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--ember {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 210, 120, 0.09) 34%,
+    rgba(255, 230, 150, 0.14) 50%,
+    rgba(255, 190, 100, 0.09) 66%,
+    transparent 100%
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--ember .dm-login-grid,
+.dm-login-grid.dm-login-grid--ember {
+  --grid-color: rgba(251, 146, 60, 0.10);
+}
+
+.dm-login-intro--ember .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--ember {
+  --spark-color: #fbbf24;
+  --spark-glow: rgba(251, 191, 36, 0.9);
+}
+
+.dm-login-intro--ember .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(251, 146, 60, 0) 0deg,
+    rgba(255, 220, 140, 0.8) 34deg,
+    rgba(249, 115, 22, 0.55) 64deg,
+    rgba(234, 179, 8, 0) 110deg,
+    rgba(234, 179, 8, 0) 238deg,
+    rgba(251, 146, 60, 0.50) 288deg,
+    rgba(251, 146, 60, 0) 332deg
+  );
+}
+
+.dm-login-intro--ember .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 220, 140, 0.85) 45%,
+    rgba(249, 115, 22, 0.60) 55%,
+    transparent
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--ember .dm-login-art--wave {
+  --art-glow: rgba(251, 146, 60, 0.24);
+}
+
+.dm-login-intro--ember .dm-login-art--wave::before {
+  background: radial-gradient(circle, rgba(251, 146, 60, 0.24), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.dm-login-intro--ember .dm-login-halo {
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Anneaux orbitaux cosmiques (thème ring). */
+
+.dm-login-ring--c {
+  border-color: rgba(196, 181, 253, 0.20);
+}
+
+.dm-login-ring--c::after {
+  background: #c4b5fd;
+  box-shadow: 0 0 14px rgba(196, 181, 253, 0.9);
+}
+
+.dm-login-ring--d {
+  border-color: rgba(139, 92, 246, 0.16);
+}
+
+.dm-login-ring--d::after {
+  background: #8b5cf6;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.9);
+}
+
+.dm-login-orbit-dot--accent::after {
+  background: var(--theme-accent);
+  box-shadow: 0 0 12px var(--theme-accent);
+}
+
+.dm-login-intro--ember .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* 7 — Givre (cyan clair / glacé). Palette froide, grille normale. */
+
+.dm-login-intro--frost {
+  --theme-accent: #93c5fd;
+  --theme-accent-strong: #3b82f6;
+  --theme-text: #ffffff;
+  --theme-sub: #bfdbfe;
+  --aurora-border: rgba(147, 197, 253, 0.28);
+  --aurora-tint: rgba(255, 255, 255, 0.06);
+  --grid-color: rgba(147, 197, 253, 0.09);
+  --spark-color: #93c5fd;
+  --spark-glow: rgba(147, 197, 253, 0.88);
+}
+
+.dm-login-intro--frost .dm-login-aurora {
+  --aurora-1-color: rgba(59, 130, 246, 0.22);
+  --aurora-2-color: rgba(147, 197, 253, 0.18);
+  --aurora-3-color: rgba(219, 234, 254, 0.13);
+  --aurora-4-color: rgba(59, 130, 246, 0.14);
+}
+
+.dm-login-intro--frost .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--frost {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(210, 225, 255, 0.07) 34%,
+    rgba(230, 240, 255, 0.11) 50%,
+    rgba(180, 210, 255, 0.07) 66%,
+    transparent 100%
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--frost .dm-login-grid,
+.dm-login-grid.dm-login-grid--frost {
+  --grid-color: rgba(147, 197, 253, 0.09);
+}
+
+.dm-login-intro--frost .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--frost {
+  --spark-color: #93c5fd;
+  --spark-glow: rgba(147, 197, 253, 0.88);
+}
+
+.dm-login-intro--frost .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(59, 130, 246, 0) 0deg,
+    rgba(210, 225, 255, 0.8) 34deg,
+    rgba(147, 197, 253, 0.45) 64deg,
+    rgba(219, 234, 254, 0) 110deg,
+    rgba(219, 234, 254, 0) 238deg,
+    rgba(59, 130, 246, 0.50) 288deg,
+    rgba(59, 130, 246, 0) 332deg
+  );
+}
+
+.dm-login-intro--frost .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(210, 225, 255, 0.82) 45%,
+    rgba(147, 197, 253, 0.55) 55%,
+    transparent
+  );
+  animation-direction: normal;
+}
+
+.dm-login-intro--frost .dm-login-art--frost {
+  --art-glow: rgba(59, 130, 246, 0.20);
+}
+
+.dm-login-intro--frost .dm-login-art--frost::before {
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.20), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--frost .dm-login-halo {
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--frost .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* 8 — Cosmos (lavande / pourpre). Couche anneaux (ring). */
+
+.dm-login-intro--cosmic {
+  --theme-accent: #c4b5fd;
+  --theme-accent-strong: #8b5cf6;
+  --theme-text: #ffffff;
+  --theme-sub: #ddd6fe;
+  --aurora-border: rgba(139, 92, 246, 0.26);
+  --aurora-tint: rgba(255, 245, 255, 0.05);
+  --grid-color: rgba(139, 92, 246, 0.09);
+  --spark-color: #c4b5fd;
+  --spark-glow: rgba(196, 181, 253, 0.88);
+}
+
+.dm-login-intro--cosmic .dm-login-aurora,
+.dm-login-aurora--ring {
+  --aurora-1-color: rgba(139, 92, 246, 0.20);
+  --aurora-2-color: rgba(59, 130, 246, 0.16);
+  --aurora-3-color: rgba(192, 132, 252, 0.13);
+  --aurora-4-color: rgba(139, 92, 246, 0.14);
+}
+
+.dm-login-intro--cosmic .dm-login-sheen,
+.dm-login-sheen.dm-login-sheen--cosmic {
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(210, 195, 255, 0.07) 34%,
+    rgba(240, 225, 255, 0.11) 50%,
+    rgba(190, 170, 255, 0.07) 66%,
+    transparent 100%
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--cosmic .dm-login-grid,
+.dm-login-grid.dm-login-grid--cosmic {
+  --grid-color: rgba(139, 92, 246, 0.09);
+}
+
+.dm-login-intro--cosmic .dm-login-sparkles,
+.dm-login-sparkles.dm-login-sparkles--cosmic {
+  --spark-color: #c4b5fd;
+  --spark-glow: rgba(196, 181, 253, 0.88);
+}
+
+.dm-login-intro--cosmic .dm-login-halo {
+  background: conic-gradient(
+    from 0deg,
+    rgba(139, 92, 246, 0) 0deg,
+    rgba(210, 195, 255, 0.8) 34deg,
+    rgba(59, 130, 246, 0.45) 64deg,
+    rgba(192, 132, 252, 0) 110deg,
+    rgba(192, 132, 252, 0) 238deg,
+    rgba(139, 92, 246, 0.50) 288deg,
+    rgba(139, 92, 246, 0) 332deg
+  );
+}
+
+.dm-login-intro--cosmic .dm-login-beam {
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(210, 195, 255, 0.80) 45%,
+    rgba(192, 132, 252, 0.55) 55%,
+    transparent
+  );
+  animation-direction: reverse;
+}
+
+.dm-login-intro--cosmic .dm-login-art--ring {
+  --art-glow: rgba(139, 92, 246, 0.22);
+}
+
+.dm-login-intro--cosmic .dm-login-art--ring::before {
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.22), transparent 68%);
+  filter: blur(6px);
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--cosmic .dm-login-halo {
+  animation-timing-function: ease-in-out;
+}
+
+.dm-login-intro--cosmic .dm-login-mark {
+  animation: dm-login-mark-pulse 4.5s ease-in-out infinite;
+}
+
+/* Anneaux supplémentaires pour le thème cosmos. */
+
+.dm-login-ring--c {
+  border-color: rgba(196, 181, 253, 0.20);
+}
+
+.dm-login-ring--c::after {
+  background: #c4b5fd;
+  box-shadow: 0 0 14px rgba(196, 181, 253, 0.9);
+}
+
+.dm-login-ring--d {
+  border-color: rgba(139, 92, 246, 0.16);
+}
+
+.dm-login-ring--d::after {
+  background: #8b5cf6;
+  box-shadow: 0 0 14px rgba(139, 92, 246, 0.9);
+}
+
+.dm-login-orbit-dot--accent::after {
+  background: var(--theme-accent);
+  box-shadow: 0 0 12px var(--theme-accent);
+}
+
+/* Adaptations mobiles du sélecteur. */
+
+@media (max-width: 640px) {
+  .dm-login-theme-picker {
+    right: 12px;
+    bottom: 14px;
+    padding: 7px 10px;
+    gap: 9px;
+  }
+
+  .dm-login-theme-picker-label {
+    display: none;
+  }
+
+  .dm-login-theme-chip {
+    width: 24px;
+    height: 24px;
+  }
+
+  .dm-login-theme-picker-row {
+    gap: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-login-theme-chip {
+    transition: border-color 0.25s ease;
+  }
+
+  .dm-login-theme-chip:hover {
+    transform: none;
+  }
+
+  .dm-login-theme-chip[aria-pressed="true"] {
+    transform: none;
+  }
+}

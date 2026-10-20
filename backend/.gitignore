@@ -1,0 +1,11 @@
+# Dépendances
+node_modules/
+
+# Environnement (contient des secrets : ne jamais versionner)
+.env
+
+# Pièces jointes déposées par les utilisateurs
+uploads/
+
+# Divers
+*.log

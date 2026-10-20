@@ -1,0 +1,401 @@
+/* DevMeet shared UI animations — Framer Motion + CSS keyframes */
+
+.dm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(13, 17, 23, 0.78);
+  backdrop-filter: blur(5px);
+}
+.dm-modal {
+  width: 100%;
+  max-width: 430px;
+  padding: 24px;
+  border: 1px solid #30363d;
+  border-radius: 12px;
+  background: #161b22;
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.45);
+}
+
+.dm-message {
+  overflow: hidden;
+  padding: 11px 13px;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  background: #161b22;
+  color: #b0bac6;
+  font-size: 12px;
+}
+
+/* Typing dots */
+.dm-typing-dots { display: inline-flex; gap: 4px; margin-left: 6px; vertical-align: middle; }
+.dm-typing-dots span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #5865f2;
+  animation: dm-blink 1.2s infinite ease-in-out;
+}
+.dm-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.dm-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dm-blink {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+
+/* Online pulse dot */
+.dm-pulse-dot {
+  position: relative;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #3fb950; flex-shrink: 0;
+}
+.dm-pulse-dot::after {
+  content: "";
+  position: absolute; inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(63,185,80, 0.5);
+  animation: dm-ping 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes dm-ping {
+  0% { transform: scale(0.6); opacity: 1; }
+  100% { transform: scale(1.2); opacity: 0; }
+}
+
+/* Floating ambient blobs */
+.dm-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: dm-float 9s ease-in-out infinite;
+}
+@keyframes dm-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-18px) scale(1.05); }
+}
+
+/* Message entrance handled by framer-motion, bubble glow on hover */
+.devmeet-bubble, .dashboard-room-card, .dashboard-stat {
+  transition: box-shadow 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+
+/* Shimmer for loading / empty states */
+.dm-shimmer {
+  background: linear-gradient(90deg, #161b22 25%, #21262d 50%, #161b22 75%);
+  background-size: 200% 100%;
+  animation: dm-shimmer 1.6s linear infinite;
+}
+@keyframes dm-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Lucide icon alignment */
+.dm-icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dm-icon svg { width: 100%; height: 100%; }
+
+/* Global animated background */
+.dm-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+.dm-bg-base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(88, 101, 242, 0.09), transparent 28%),
+    radial-gradient(circle at 85% 80%, rgba(88, 101, 242, 0.07), transparent 25%),
+    #0d1117;
+  animation: dm-bg-shift 18s ease-in-out infinite alternate;
+  background-size: 130% 130%;
+}
+@keyframes dm-bg-shift {
+  0% { background-position: 0% 0%, 100% 100%, 0 0; }
+  100% { background-position: 100% 40%, 20% 20%, 0 0; }
+}
+.dm-bg-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(88,101,242, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(88,101,242, 0.05) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, black 30%, transparent 75%);
+  animation: dm-grid-drift 24s linear infinite;
+}
+@keyframes dm-grid-drift {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 44px 44px, 44px 44px; }
+}
+.dm-bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(10px);
+  will-change: transform;
+}
+.dm-bg-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 120% 100% at 50% 50%, transparent 55%, rgba(13,17,23, 0.55) 100%);
+}
+
+/* ------------------- Fond animé des pages d'authentification ----------------
+   Réservé à la variante « auth » : il ne s'affiche ni sur le tableau de bord
+   ni sur les autres écrans internes. Tout est en transform/opacity pour
+   rester fluide.
+   ------------------------------------------------------------------------- */
+
+/* Aurores à l'échelle du viewport. */
+.dm-bg-aurora {
+  position: absolute;
+  inset: -14%;
+  pointer-events: none;
+}
+
+.dm-bg-aurora span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+.dm-bg-aurora-1 {
+  top: -20%;
+  left: -14%;
+  width: 60vw;
+  height: 60vw;
+  background: radial-gradient(circle, rgba(88,101,242, 0.22), transparent 64%);
+  animation: dm-bg-aurora-a 26s ease-in-out infinite alternate;
+}
+
+.dm-bg-aurora-2 {
+  right: -18%;
+  bottom: -22%;
+  width: 56vw;
+  height: 56vw;
+  background: radial-gradient(circle, rgba(88,101,242, 0.18), transparent 66%);
+  animation: dm-bg-aurora-b 32s ease-in-out infinite alternate;
+}
+
+.dm-bg-aurora-3 {
+  left: 18%;
+  bottom: -26%;
+  width: 44vw;
+  height: 44vw;
+  background: radial-gradient(circle, rgba(88,101,242, 0.11), transparent 68%);
+  animation: dm-bg-aurora-c 29s ease-in-out infinite alternate;
+}
+
+@keyframes dm-bg-aurora-a {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.96);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translate3d(6vw, 4vh, 0) scale(1.12);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(2vw, 9vh, 0) scale(1.02);
+    opacity: 0.78;
+  }
+}
+
+@keyframes dm-bg-aurora-b {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.04);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate3d(-7vw, -5vh, 0) scale(1.16);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate3d(-3vw, -10vh, 0) scale(0.98);
+    opacity: 0.7;
+  }
+}
+
+@keyframes dm-bg-aurora-c {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.94);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate3d(5vw, -6vh, 0) scale(1.1);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(-2vw, -11vh, 0) scale(1);
+    opacity: 0.55;
+  }
+}
+
+/* Faisceaux : longues nappes verticales qui pivotent doucement. */
+.dm-bg-beams {
+  position: absolute;
+  inset: -18% -8%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+.dm-bg-beam {
+  position: absolute;
+  top: -22%;
+  height: 158%;
+  display: block;
+  transform-origin: 50% 0%;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    var(--beam-color) 26%,
+    var(--beam-color) 58%,
+    transparent 90%
+  );
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 38%, #000 62%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 38%, #000 62%, transparent);
+  opacity: 0.35;
+  animation: dm-bg-beam-drift var(--beam-dur) ease-in-out infinite alternate;
+  will-change: transform, opacity;
+}
+
+@keyframes dm-bg-beam-drift {
+  0% {
+    transform: rotate(var(--beam-tilt)) translate3d(-7%, 0, 0) scaleY(0.94);
+    opacity: 0.14;
+  }
+  50% {
+    opacity: 0.62;
+  }
+  100% {
+    transform: rotate(calc(var(--beam-tilt) * -1)) translate3d(6%, 2%, 0) scaleY(1.06);
+    opacity: 0.26;
+  }
+}
+
+/* Balayage lumineux traversant toute la page, long temps de repos. */
+.dm-bg-sweep {
+  position: absolute;
+  top: -32%;
+  bottom: -32%;
+  left: -46%;
+  width: 38%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(139,148,158, 0.05) 42%,
+    rgba(220,226,232, 0.09) 52%,
+    rgba(88,101,242, 0.05) 62%,
+    transparent 100%
+  );
+  transform: skewX(-12deg);
+  opacity: 0;
+  animation: dm-bg-sweep-run 17s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes dm-bg-sweep-run {
+  0%,
+  60% {
+    transform: translate3d(0, 0, 0) skewX(-12deg);
+    opacity: 0;
+  }
+  66% {
+    opacity: 0.85;
+  }
+  92% {
+    transform: translate3d(340%, 0, 0) skewX(-12deg);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate3d(340%, 0, 0) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+/* Constellation de poussières. */
+.dm-bg-stars {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dm-bg-stars span {
+  position: absolute;
+  display: block;
+  border-radius: 50%;
+  background: #7985ff;
+  box-shadow: 0 0 7px rgba(121,133,255, 0.8);
+  opacity: 0.12;
+  animation-name: dm-bg-twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  will-change: transform, opacity;
+}
+
+@keyframes dm-bg-twinkle {
+  0%,
+  100% {
+    opacity: 0.08;
+    transform: translate3d(0, 0, 0) scale(0.7);
+  }
+  45% {
+    opacity: 0.7;
+    transform: translate3d(0, -6px, 0) scale(1.15);
+  }
+  62% {
+    opacity: 0.24;
+    transform: translate3d(0, -9px, 0) scale(0.9);
+  }
+}
+
+/* Halo suivant le curseur : une seule couche repeinte. */
+.dm-bg-cursor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Sur petit écran, on allège le décor : une poussière sur deux suffit et
+   limite le nombre de couches animées sur mobile. */
+@media (max-width: 640px) {
+  .dm-bg-stars span:nth-child(even) {
+    display: none;
+  }
+
+  .dm-bg-beam {
+    animation-duration: calc(var(--beam-dur) * 1.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dm-bg-aurora span,
+  .dm-bg-beam,
+  .dm-bg-sweep,
+  .dm-bg-stars span {
+    animation: none;
+  }
+
+  .dm-bg-sweep {
+    opacity: 0;
+  }
+
+  .dm-bg-stars span {
+    opacity: 0.32;
+  }
+
+  .dm-bg-cursor {
+    display: none;
+  }
+}
+/* Le contenu des pages passe au-dessus du fond */
+.dm-page {
+  position: relative;
+  z-index: 1;
+}
